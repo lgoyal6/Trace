@@ -461,7 +461,8 @@ In order:
 
 ## Update — third pass: CP1 + CP2, live account, everything below actually executed
 
-First run against a real Snowflake account: `ZNEYKJS-BB01029`, user `YBALRS`.
+First run against a real Snowflake account (identifier and user redacted —
+both live in `.env`, which is gitignored; this repo is public).
 Authenticated via Personal Access Token (the account requires MFA; a PAT
 avoids interactive Duo pushes for a headless app). **The PAT is
 ACCOUNTADMIN-scoped** (Snowflake PATs lock to whatever role is active when

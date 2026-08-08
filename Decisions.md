@@ -80,7 +80,8 @@ in the account's region:**
 **Owner:** whoever on Card 1 (or a successor lane, if Card 1 has handed off
 by then) first gets real Snowflake credentials and runs CP1/CP2 setup.
 
-**RESOLVED 2026-08-07, live account `ZNEYKJS-BB01029`:**
+**RESOLVED 2026-08-07, against the live account (identifier redacted; see
+`.env`, which is gitignored):**
 
 1. Confirmed unavailable. `SELECT SNOWFLAKE.CORTEX.COMPLETE('claude-3-5-sonnet', 'ping')`
    failed after a full 20s statement timeout (not a fast 400 — the call hangs
