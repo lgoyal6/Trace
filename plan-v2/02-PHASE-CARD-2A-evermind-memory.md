@@ -1,4 +1,4 @@
-# PHASE CARD 2A — EVERMIND MEMORY & PIPELINE ORCHESTRATION
+# PHASE CARD 2A - EVERMIND MEMORY & PIPELINE ORCHESTRATION
 
 | | |
 |---|---|
@@ -8,12 +8,12 @@
 | **Languages** | **Python only.** Zero `.ts` / `.tsx` / `.css`. Zero files under `frontend/` or `docs/`. Zero `.sql`. |
 | **Commit prefix** | `[c2a]` |
 | **Shell var** | `export NEULIT_LANE=c2a` |
-| **Partner card** | Card 2B (Codex) — same branch, disjoint files, communicates only via `Handoff-Log.md` and the frozen HTTP contract |
+| **Partner card** | Card 2B (Codex) - same branch, disjoint files, communicates only via `Handoff-Log.md` and the frozen HTTP contract |
 | **Blocked by** | nothing. You develop entirely on `NEULIT_PROFILE=fake` until CP2. |
 
 ---
 
-## 0. Preamble to paste at the top of every Claude Code session — verbatim, do not paraphrase
+## 0. Preamble to paste at the top of every Claude Code session - verbatim, do not paraphrase
 
 > You are operating as **Card 2A (Claude Code, Python only)** on branch `branch-2`. You may edit only the paths listed under "Card 2A" in `plan-v2/00-SHARED-CONTRACTS.md`. You may not edit any `.ts`, `.tsx`, `.css`, `.sql` file, any file under `frontend/`, `docs/`, `backend/snowflake/`, or `backend/app/retrieval/`, and you may not edit any FROZEN file. If your task appears to require editing a file you do not own, stop and append an entry to `Blockers.md` in the Obsidian vault instead. Before you begin, read `Handoff-Log.md`. Before you finish, append to `Handoff-Log.md`. Run `git pull --ff-only origin branch-2` before your first commit and before your last.
 
@@ -29,7 +29,7 @@ You do **not** own: anything that talks to Snowflake, any retrieval scoring, the
 
 ---
 
-## 2. Ownership boundary — the exact list
+## 2. Ownership boundary - the exact list
 
 ```
 backend/memory/**
@@ -70,7 +70,7 @@ backend/seed.py
 
 Decided, and not up for reinterpretation mid-build:
 
-**Researcher profile + session thread.** EverOS remembers who is asking — their specialty, the conditions they have explored, the papers they have already been shown — and later queries are re-ranked and later summaries are written against what that person already knows. That is the "gets better the more it's used" claim, and every feature below serves it.
+**Researcher profile + session thread.** EverOS remembers who is asking - their specialty, the conditions they have explored, the papers they have already been shown - and later queries are re-ranked and later summaries are written against what that person already knows. That is the "gets better the more it's used" claim, and every feature below serves it.
 
 Explicitly **not** in scope: query-rewrite learning, cross-user memory, memory-driven corpus expansion. If those look tempting, they are the reason this card ships at 60%.
 
@@ -78,7 +78,7 @@ Explicitly **not** in scope: query-rewrite learning, cross-user memory, memory-d
 
 ## 4. Work breakdown
 
-### 4.1 `backend/memory/evermind.py` — `EverOSMemory implements MemoryPort`
+### 4.1 `backend/memory/evermind.py` - `EverOSMemory implements MemoryPort`
 
 The whole EverOS surface, wrapped so the rest of the codebase never sees the SDK.
 
@@ -92,9 +92,9 @@ The whole EverOS surface, wrapped so the rest of the codebase never sees the SDK
 | `set_specialty(user_id, specialty)` | One free-text field, e.g. `"neuroradiology resident"`. Capped at 120 chars. |
 | `record_query(user_id, session_id, query, matched_conditions)` | Appends to the session thread, increments `query_count`, unions `matched_conditions` into `conditions_explored`. |
 | `record_papers_shown(user_id, session_id, pmids)` | Appends to both the session thread and the durable per-user seen set. |
-| `seen_pmids(user_id)` | Returns the durable set. **Must be fast** — it is on the hot path of every query. Cache in-process with a 60s TTL. |
+| `seen_pmids(user_id)` | Returns the durable set. **Must be fast** - it is on the hot path of every query. Cache in-process with a 60s TTL. |
 | `get_thread(user_id, session_id)` | The current session's queries and PMIDs shown. |
-| `forget(user_id)` | Deletes everything under the user's namespace. Required for the demo — you must be able to show a cold user and a warm user back to back. |
+| `forget(user_id)` | Deletes everything under the user's namespace. Required for the demo - you must be able to show a cold user and a warm user back to back. |
 | `health()` | `{"ok", "detail"}`; a reachability probe, not a write. |
 
 **Degradation is mandatory.** With `EVEROS_API_KEY` unset or EverOS unreachable, every read returns an empty default and every write is a logged no-op. `/query` continues to work and simply reports `memory.applied = false`. **A memory outage must never fail a search.** Enforce this with a test that patches the client to raise on every call and asserts `/query` still returns 200.
@@ -103,18 +103,18 @@ The whole EverOS surface, wrapped so the rest of the codebase never sees the SDK
 
 ---
 
-### 4.2 `backend/memory/profile.py` — distillation
+### 4.2 `backend/memory/profile.py` - distillation
 
 `ResearcherProfile.distilled_context` is a **≤ 600 character** natural-language paragraph injected into the summary prompt. It is what makes the personalization visible rather than theoretical.
 
-- Regenerate it via `LLMPort.chat(..., call_site="memory_distill")` — this is your only LLM call, and it goes through the same client so Card 1's ledger prices it. Do not call any model directly.
+- Regenerate it via `LLMPort.chat(..., call_site="memory_distill")` - this is your only LLM call, and it goes through the same client so Card 1's ledger prices it. Do not call any model directly.
 - Regenerate **lazily and rarely**: only when `query_count` crosses a multiple of 3, or when `specialty` changes. Regenerating per query would put a sixth LLM call on the hot path for negligible gain and would visibly distort the cost-per-query number on the economics dashboard.
 - Content shape: specialty, the conditions explored so far, and the apparent depth of prior engagement. Nothing else. It must never contain PMIDs, patient-like details, or verbatim query text.
 - Hard-truncate at 600 chars after generation. Do not trust the model to obey the limit.
 
 ---
 
-### 4.3 `backend/memory/rerank.py` — memory-conditioned re-rank
+### 4.3 `backend/memory/rerank.py` - memory-conditioned re-rank
 
 A pure function, no I/O, fully unit-testable:
 
@@ -139,7 +139,7 @@ Rules, in order:
 
 ---
 
-### 4.4 `backend/app/pipeline.py` — the orchestrator you own
+### 4.4 `backend/app/pipeline.py` - the orchestrator you own
 
 This file replaces the implicit orchestration that was scattered across routes and `llm_client` in v1. One function, one clear order:
 
@@ -158,7 +158,7 @@ run_query(query, user_id, session_id, personalize) -> QueryResult
 9. **Summary** (`call_site="summary"`), with `profile.distilled_context` injected when `personalize` and the context is non-empty.
 10. **Citation check** (`call_site="citation_check"`) per claim.
 11. Write memory: `record_query(...)`, `record_papers_shown(...)`.
-12. Assemble the response including the `memory` and `cost` blocks from §4 of the contracts doc. Aggregate `cost` from the `TokenUsage` on each `ChatResult` you received — **do not query the ledger.** You already hold every number; a read-back would race the ledger's async flush and produce a response that disagrees with itself.
+12. Assemble the response including the `memory` and `cost` blocks from §4 of the contracts doc. Aggregate `cost` from the `TokenUsage` on each `ChatResult` you received - **do not query the ledger.** You already hold every number; a read-back would race the ledger's async flush and produce a response that disagrees with itself.
 
 **Every step is individually degradable.** A failed HyDE call falls through to the raw query. A failed relevance check treats the round as passing. A failed citation check returns the summary with `supported: null` on each claim and a truthful flag. The request returns 200 with reduced fidelity, always.
 
@@ -169,21 +169,21 @@ run_query(query, user_id, session_id, personalize) -> QueryResult
 `backend/app/loop/{hyde,refine,relevance_check,trace}.py`, `backend/app/summary/generate.py`, `backend/app/verify/citation_check.py`:
 
 - Replace every `ParitokLLMClient` reference with an injected `LLMPort`.
-- Every call passes `call_site`, `request_id`, `session_id`, `user_id`. **No exceptions** — an unattributed LLM call is a hole in the cost story.
+- Every call passes `call_site`, `request_id`, `session_id`, `user_id`. **No exceptions** - an unattributed LLM call is a hole in the cost story.
 - Every call that expects structured output passes an explicit `json_schema`. Stop parsing free text with regex.
 - `trace.py` gains two fields per round: `memory_applied: bool` and `seen_filtered: int`, so the existing retrieval-trace UI can show that memory did something.
-- **Summary prompt change:** when `distilled_context` is present, prepend a `system` message: *"The reader is described as: {distilled_context}. Assume familiarity with material they have already explored; prioritize what is new to them. Do not mention this description in your answer."* The last clause matters — a summary that opens with "As a neuroradiology resident, you'll know..." is a personalization demo that reads as a bug.
+- **Summary prompt change:** when `distilled_context` is present, prepend a `system` message: *"The reader is described as: {distilled_context}. Assume familiarity with material they have already explored; prioritize what is new to them. Do not mention this description in your answer."* The last clause matters - a summary that opens with "As a neuroradiology resident, you'll know..." is a personalization demo that reads as a bug.
 - **Do not weaken the citation requirement for personalized summaries.** Every sentence still carries a numbered citation. Personalization changes emphasis, never evidentiary standards.
 
 ---
 
-### 4.6 Routes — `memory.py`, `query.py`, `demo.py`, `schemas.py`
+### 4.6 Routes - `memory.py`, `query.py`, `demo.py`, `schemas.py`
 
 Implement exactly the shapes frozen in §4 of the contracts doc. Card 2B has already generated TypeScript from those shapes and is building UI against them.
 
-- `POST /query` — the new `personalize`, `user_id`, `session_id` request fields and the new `memory` + `cost` response blocks.
+- `POST /query` - the new `personalize`, `user_id`, `session_id` request fields and the new `memory` + `cost` response blocks.
 - `GET /memory/profile`, `POST /memory/specialty`, `POST /memory/forget`, `GET /memory/thread`.
-- `demo.py` — keep the fixture demo path working; it is the fallback if live services die during judging. Make it return a plausible `memory` and `cost` block so the UI renders identically in demo mode.
+- `demo.py` - keep the fixture demo path working; it is the fallback if live services die during judging. Make it return a plausible `memory` and `cost` block so the UI renders identically in demo mode.
 - Rate limits via the existing limiter: 10/min on `/query`, 30/min on memory reads, 5/min on `/memory/forget`.
 - **If a frozen shape turns out to be wrong, you do not change it unilaterally.** Log it in `Decisions.md`, tell Codex via `Handoff-Log.md`, change it at the next checkpoint. A response-shape drift is the one thing that breaks Card 2B without touching a single file they own, and it is therefore the failure mode this whole plan is built to prevent.
 
@@ -195,17 +195,17 @@ Rewrite so `python -m backend.seed` runs `run_query` once with a fixed query und
 
 ---
 
-### 4.8 Tests — `backend/tests/memory/` and the reassigned files
+### 4.8 Tests - `backend/tests/memory/` and the reassigned files
 
 All must pass under `NEULIT_PROFILE=fake` with **no** `EVEROS_*` and no `SNOWFLAKE_*` env vars.
 
 New, in `backend/tests/memory/`:
 
-- `test_evermind_client.py` — namespacing correctness (user A never reads user B), empty defaults on miss, `forget()` clearing everything, the 60s `seen_pmids` cache.
-- `test_memory_degradation.py` — client raises on every call → `/query` still 200, `memory.applied == false`. **This is the most important test on this card.**
-- `test_memory_latency_budget.py` — client sleeps past 300 ms → defaults returned, `memory.applied == false`, total added latency bounded.
-- `test_rerank.py` — the 0.6 / 1.15 factors, the `[0.6, 1.2]` cap, and the adversarial rare-vs-explored-common case from §4.3.
-- `test_profile_distillation.py` — regenerates only on the multiple-of-3 / specialty-change triggers; hard-truncates at 600 chars; never emits a PMID.
+- `test_evermind_client.py` - namespacing correctness (user A never reads user B), empty defaults on miss, `forget()` clearing everything, the 60s `seen_pmids` cache.
+- `test_memory_degradation.py` - client raises on every call → `/query` still 200, `memory.applied == false`. **This is the most important test on this card.**
+- `test_memory_latency_budget.py` - client sleeps past 300 ms → defaults returned, `memory.applied == false`, total added latency bounded.
+- `test_rerank.py` - the 0.6 / 1.15 factors, the `[0.6, 1.2]` cap, and the adversarial rare-vs-explored-common case from §4.3.
+- `test_profile_distillation.py` - regenerates only on the multiple-of-3 / specialty-change triggers; hard-truncates at 600 chars; never emits a PMID.
 
 Reassigned v1 files, rewritten in place, **filenames kept**: `test_search_loop.py`, `test_loop_prompts.py`, `test_summary_generate.py`, `test_citation_check.py`, `test_pipeline_integration.py`, `test_api_query.py`, `test_api_demo.py`, `test_query_stream.py`, `test_multiturn_session.py`.
 
@@ -218,7 +218,7 @@ Reassigned v1 files, rewritten in place, **filenames kept**: `test_search_loop.p
 You share `branch-2`. These are the mechanics:
 
 1. **Disjoint by language.** You touch `.py`. Codex touches `.ts`, `.tsx`, `.md`, `.d2`. There is no file either of you can both open.
-2. **`git pull --ff-only origin branch-2` before every push.** Because your paths are disjoint, this should always fast-forward. **If it ever refuses, one of you edited outside your lane** — do not merge, do not force, find the file.
+2. **`git pull --ff-only origin branch-2` before every push.** Because your paths are disjoint, this should always fast-forward. **If it ever refuses, one of you edited outside your lane** - do not merge, do not force, find the file.
 3. **One `Handoff-Log.md` entry per session, before you stop.** Format:
 
    ```
@@ -248,7 +248,7 @@ You share `branch-2`. These are the mechanics:
 | 6 | After CP2 merge: run `NEULIT_PROFILE=live`, populate real `cost` block | **CP3 gate** |
 | 7 | §4.8 remaining tests, §4.7 seed | after CP3 |
 
-**At CP2 you will use Card 1's real Snowflake client for the first time.** Budget an hour for the first live run to fail on something dull — a model name, a role grant, a serialization difference in `ScoredPaper`. That is expected and is exactly why CP2 exists at 60% and not at 90%.
+**At CP2 you will use Card 1's real Snowflake client for the first time.** Budget an hour for the first live run to fail on something dull - a model name, a role grant, a serialization difference in `ScoredPaper`. That is expected and is exactly why CP2 exists at 60% and not at 90%.
 
 ---
 
@@ -260,8 +260,8 @@ You share `branch-2`. These are the mechanics:
 - [ ] Memory reads respect the 300 ms budget, by test.
 - [ ] `apply_memory` cap verified: a rare paper never falls below a common one due to personalization, by test.
 - [ ] Exactly one `request_id` per `/query`, threaded through every LLM call, asserted by test.
-- [ ] Zero direct `LedgerPort.record()` calls anywhere in your code — verify with `grep -rn "ledger.record" backend/app backend/api backend/memory` returning nothing.
-- [ ] Zero imports of `backend.snowflake` — verify with `grep -rn "backend.snowflake" backend/app backend/api backend/memory` returning nothing.
+- [ ] Zero direct `LedgerPort.record()` calls anywhere in your code - verify with `grep -rn "ledger.record" backend/app backend/api backend/memory` returning nothing.
+- [ ] Zero imports of `backend.snowflake` - verify with `grep -rn "backend.snowflake" backend/app backend/api backend/memory` returning nothing.
 - [ ] `distilled_context` never exceeds 600 chars and never contains a PMID, by test.
 - [ ] Personalized summaries still carry a citation on every sentence, by test.
 - [ ] `python -m backend.seed` works under `fake`, `live_no_snowflake`, and `live`.

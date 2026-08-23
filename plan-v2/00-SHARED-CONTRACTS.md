@@ -1,4 +1,4 @@
-# 00 — SHARED CONTRACTS & MERGE PROTOCOL
+# 00 - SHARED CONTRACTS & MERGE PROTOCOL
 
 Read this before opening any phase card. Nobody writes a line of feature code until the freeze commit described here is on main and tagged.
 
@@ -11,11 +11,11 @@ The old build (NeuLitTrace v1) was a rare-neuroimaging RAG whose token-economy s
 | Concern | v1 | v2 |
 |---|---|---|
 | Prompt compression | Paritok CompressionPipeline | Removed. No replacement. |
-| Token economy story | "we compressed 40.9% of the summary prompt" | Snowflake cost ledger — every LLM call writes prompt/completion tokens + priced USD to TOKEN_LEDGER; Cortex Analyst answers cost questions in natural language |
+| Token economy story | "we compressed 40.9% of the summary prompt" | Snowflake cost ledger - every LLM call writes prompt/completion tokens + priced USD to TOKEN_LEDGER; Cortex Analyst answers cost questions in natural language |
 | Inference | Groq llama-3.3-70b-versatile + Gemini failover | Snowflake Cortex COMPLETE for all six call sites. Groq and Gemini clients are deleted. |
 | Retrieval | in-memory rank-bm25 + local sentence-transformers over corpus.json | Snowflake Cortex Search Service (native hybrid lexical + vector) over a PAPERS table, with the rarity boost applied as a post-retrieval re-rank |
 | Corpus storage | backend/data/corpus.json | Snowflake NEULIT.CORE.PAPERS / CONDITIONS tables (the JSON stays in-repo only as migration source + fake fixture) |
-| Memory / personalization | none | EverMind EverOS — researcher profile, cross-session thread, seen-paper ledger, memory-conditioned re-rank and summary |
+| Memory / personalization | none | EverMind EverOS - researcher profile, cross-session thread, seen-paper ledger, memory-conditioned re-rank and summary |
 | Brain atlas | nilearn local lookup | unchanged |
 | Rate limiting | slowapi | unchanged |
 
@@ -73,13 +73,13 @@ backend/tests/test_bm25_index.py
 
 Deleting backend/app/llm_client.py at freeze time, not on a branch, is deliberate: it is the one file both Card 1 and Card 2A would otherwise have reason to open. Removing it before either branch exists means neither can. Card 2A imports LLMPort from backend.contracts; Card 1 builds backend/app/llm/ fresh.
 
-backend/data/corpus.json stays — it is the migration source for Card 1 and the fake fixture for Cards 2A/2B.
+backend/data/corpus.json stays - it is the migration source for Card 1 and the fake fixture for Cards 2A/2B.
 
-### 2.2 Create backend/contracts/ — FROZEN
+### 2.2 Create backend/contracts/ - FROZEN
 
 This package is the seam. Both branches import from it; nobody edits it.
 
-backend/contracts/__init__.py — re-exports everything below.
+backend/contracts/__init__.py - re-exports everything below.
 
 backend/contracts/models.py
 
@@ -236,7 +236,7 @@ LLMPort.chat must call LedgerPort.record exactly once per invocation, including 
 Every port method must return rather than raise on backend failure. search returns [], chat returns a degraded ChatResult, memory methods return empty defaults. A missing Snowflake credential must degrade the feature, never 500 the request.
 health() returns {"ok": bool, "detail": str} on every port. Card 2B renders these.
 
-backend/contracts/registry.py — FROZEN. Lazy string-path DI so neither branch ever edits an import list:
+backend/contracts/registry.py - FROZEN. Lazy string-path DI so neither branch ever edits an import list:
 
 ```python
 """FROZEN at tag contracts-v1."""
@@ -272,7 +272,7 @@ def get_services() -> Services:
     )
 ```
 
-config/services.yaml — FROZEN, and it already names classes that do not work yet:
+config/services.yaml - FROZEN, and it already names classes that do not work yet:
 
 ```yaml
 fake:      # default. Runs with zero credentials. Cards 2A/2B live here until integration.
@@ -302,16 +302,16 @@ live_no_snowflake: # Card 2A's integration profile — no Snowflake credentials 
 
 This file existing pre-freeze is what removes the biggest conflict in the repo: nobody ever edits a wiring file to add their implementation.
 
-backend/contracts/fakes.py — FROZEN. Deterministic in-process implementations of all four ports, backed by backend/data/corpus.json and canned LLM responses keyed by call_site. Requirements:
+backend/contracts/fakes.py - FROZEN. Deterministic in-process implementations of all four ports, backed by backend/data/corpus.json and canned LLM responses keyed by call_site. Requirements:
 
 FakeRetrieval does naive token-overlap scoring over the corpus JSON, applies the same rarity multiplier formula as v1, honours exclude_pmids, and is fully deterministic.
 FakeLLM returns a fixed valid JSON payload per call_site (so json_schema consumers parse successfully), reports plausible token counts, and records to the injected ledger.
 FakeMemory is a process-local dict.
 FakeLedger appends to an in-memory list exposed as .events.
 
-Without the fakes, Cards 2A and 2B are blocked on Card 1 finishing. With them, all three lanes start at minute zero. This is the single highest-leverage item in the freeze commit — do not skip it or half-build it.
+Without the fakes, Cards 2A and 2B are blocked on Card 1 finishing. With them, all three lanes start at minute zero. This is the single highest-leverage item in the freeze commit - do not skip it or half-build it.
 
-### 2.3 Create empty stub modules — FROZEN filenames, owned bodies
+### 2.3 Create empty stub modules - FROZEN filenames, owned bodies
 
 Each stub is one file containing a class that raises NotImplementedError. The file must exist at freeze time so that config/services.yaml and main.py never need editing later. The body is owned by exactly one card.
 
@@ -348,7 +348,7 @@ app.include_router(memory_router)      # stub at freeze; Card 2A fills the modul
 
 ### 2.5 Split the dependency files
 
-backend/requirements.txt — FROZEN, contents exactly:
+backend/requirements.txt - FROZEN, contents exactly:
 
 ```
 -r requirements-base.txt
@@ -366,7 +366,7 @@ Card 2B never touches Python deps. frontend/package.json is Card 2B's alone.
 
 ### 2.6 Freeze the env template
 
-.env.example — FROZEN, containing every key any lane will need, so nobody adds one later:
+.env.example - FROZEN, containing every key any lane will need, so nobody adds one later:
 
 ```
 NEULIT_PROFILE=fake
@@ -397,7 +397,7 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
 
 Every path in the repo belongs to exactly one of five buckets. If a path you want to edit is not in your bucket, you do not edit it.
 
-### FROZEN — nobody edits after contracts-v1
+### FROZEN - nobody edits after contracts-v1
 
 ```
 backend/contracts/**
@@ -425,7 +425,7 @@ backend/tests/__init__.py
 
 Every __init__.py in the tree is created empty at freeze and frozen. They are the classic silent conflict: two lanes each adding one export, same line, same file, for no benefit. Nothing is ever exported from an __init__.py in this repo except backend/contracts/__init__.py, which is written once at freeze.
 
-### Card 1 — branch-1
+### Card 1 - branch-1
 
 ```
 backend/snowflake/**
@@ -448,7 +448,7 @@ backend/tests/test_api_conditions.py
 backend/measurement/**
 ```
 
-### Card 2A — branch-2, Python only
+### Card 2A - branch-2, Python only
 
 ```
 backend/memory/**
@@ -477,7 +477,7 @@ backend/tests/test_seed.py
 backend/seed.py
 ```
 
-### Card 2B — branch-2, TypeScript + Markdown only
+### Card 2B - branch-2, TypeScript + Markdown only
 
 ```
 frontend/**
@@ -502,7 +502,7 @@ LICENSE
 
 If backend/api/routes/atlas.py genuinely needs a change, it goes through the Decisions.md process, not a unilateral edit.
 
-### Git-ignored at freeze — never committed by anyone
+### Git-ignored at freeze - never committed by anyone
 
 ```
 backend/data/seed_output.json    # regenerated per run; a committed copy is a guaranteed conflict
@@ -519,7 +519,7 @@ Every path currently in the repository resolves to exactly one bucket above, or 
 
 ## 4. The HTTP contract between Card 2A and Card 2B
 
-This is frozen at contracts-v1 as stub routes. Card 2B builds against these shapes from minute one using the fake profile; Card 2A must make them true. Card 2B never asks Card 2A to change a shape mid-build — if a shape is wrong, it is logged in Decisions.md and changed once, at an integration checkpoint, by both at the same time.
+This is frozen at contracts-v1 as stub routes. Card 2B builds against these shapes from minute one using the fake profile; Card 2A must make them true. Card 2B never asks Card 2A to change a shape mid-build - if a shape is wrong, it is logged in Decisions.md and changed once, at an integration checkpoint, by both at the same time.
 
 ```
 POST /query
@@ -617,12 +617,12 @@ Three, and only three. Nothing merges to main between them.
 | # | Trigger | Card 1 must have | Card 2A must have | Card 2B must have | Merge action |
 |---|---|---|---|---|---|
 | CP1 | ~25% elapsed | PAPERS + CONDITIONS loaded in Snowflake, Cortex Search Service responding, health() green | EverOSMemory passing its own unit tests against EverOS | npm run types:gen working against fake profile, memory panel rendering fake data | Nothing merges. Each lane posts health() output to Obsidian Handoff-Log.md. |
-| CP2 | ~60% elapsed | CortexLLMClient + SnowflakeLedger complete; NEULIT_PROFILE=live_no_memory runs a full query end to end | pipeline.py + memory re-rank complete; NEULIT_PROFILE=live_no_snowflake runs end to end | All UI built against fake profile; docs skeleton done | branch-1 → main, then branch-2 → main, in that order, same sitting. Resolve any conflict by ownership matrix — the owner's version wins, no discussion. |
+| CP2 | ~60% elapsed | CortexLLMClient + SnowflakeLedger complete; NEULIT_PROFILE=live_no_memory runs a full query end to end | pipeline.py + memory re-rank complete; NEULIT_PROFILE=live_no_snowflake runs end to end | All UI built against fake profile; docs skeleton done | branch-1 → main, then branch-2 → main, in that order, same sitting. Resolve any conflict by ownership matrix - the owner's version wins, no discussion. |
 | CP3 | ~85% elapsed | /economics/* incl. Cortex Analyst working | /query returns real memory + cost blocks | Dashboard + memory UI reading real data; docs finished | Both branches → main. Freeze feature work. Remaining time is demo + README. |
 
 Rule for CP2 and CP3: run NEULIT_PROFILE=live and the full pytest suite on main after merging, before anyone starts again. If main is red, nobody branches off it.
 
-## 7. Obsidian vault — the only cross-lane channel
+## 7. Obsidian vault - the only cross-lane channel
 
 Cards 2A and 2B are both driven through Obsidian MCP. Vault at obsidian/ (git-ignored, synced separately, never committed). Four notes, and Card 1's operator gets write access too:
 
@@ -633,13 +633,13 @@ Cards 2A and 2B are both driven through Obsidian MCP. Vault at obsidian/ (git-ig
 | Decisions.md | Any deviation from this document. Must state: what changed, why, which lanes are affected, which tag it lands under. | all three |
 | Blockers.md | "I need a change in a file I don't own." Names the file, the change, and the owner. Owner makes the change, replies in-line, deletes the entry. | all three |
 
-Card 2A and Card 2B must both append to Handoff-Log.md before ending a work session. This is the mechanism by which Claude Code and Codex stay coherent without reading each other's diffs. Neither agent should ever be told "go look at what the other one did in git" — they read the log.
+Card 2A and Card 2B must both append to Handoff-Log.md before ending a work session. This is the mechanism by which Claude Code and Codex stay coherent without reading each other's diffs. Neither agent should ever be told "go look at what the other one did in git" - they read the log.
 
 Instruction wording rule (this is what keeps two agents from drifting). Every task given to Claude Code or Codex must open with a literal preamble:
 
 > You are operating as Card 2A (Claude Code, Python only) on branch branch-2. You may edit only the paths listed under "Card 2A" in plan-v2/00-SHARED-CONTRACTS.md. You may not edit any .ts, .tsx, or docs/** file. If your task appears to require editing a file you do not own, stop and append an entry to Blockers.md instead. Before you begin, read Handoff-Log.md.
 
-Swap 2A / Claude Code / Python for 2B / Codex / TypeScript as appropriate. Do not paraphrase this preamble — reuse it exactly, every time. Ambiguity in the preamble is where merge conflicts get born.
+Swap 2A / Claude Code / Python for 2B / Codex / TypeScript as appropriate. Do not paraphrase this preamble - reuse it exactly, every time. Ambiguity in the preamble is where merge conflicts get born.
 
 ## 8. Definition of done, shared by all three cards
 

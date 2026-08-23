@@ -1,4 +1,4 @@
-# PHASE CARD 1 — SNOWFLAKE PLATFORM LAYER
+# PHASE CARD 1 - SNOWFLAKE PLATFORM LAYER
 
 | | |
 |---|---|
@@ -27,7 +27,7 @@ You do **not** own: the search loop, the summary generator, the citation checker
 
 ---
 
-## 2. Ownership boundary — the exact list
+## 2. Ownership boundary - the exact list
 
 You may create, edit, and delete only these:
 
@@ -52,13 +52,13 @@ backend/tests/test_api_conditions.py
 backend/measurement/**
 ```
 
-**Deleting `backend/app/llm_client.py`** is your job and is expected — replace it with the `backend/app/llm/` package. Card 2A has been told to import `LLMPort` from `backend.contracts`, never `backend.app.llm_client`, so this deletion cannot break them.
+**Deleting `backend/app/llm_client.py`** is your job and is expected - replace it with the `backend/app/llm/` package. Card 2A has been told to import `LLMPort` from `backend.contracts`, never `backend.app.llm_client`, so this deletion cannot break them.
 
 ---
 
 ## 3. Work breakdown
 
-### 3.1 Snowflake account setup and DDL — `snowflake/sql/`
+### 3.1 Snowflake account setup and DDL - `snowflake/sql/`
 
 Create these files. They are run in order, by hand, once, against the hackathon account.
 
@@ -153,9 +153,9 @@ AS (
 );
 ```
 
-Cortex Search does hybrid lexical + vector natively. **This is why `bm25_index.py` and `vector_index.py` are deleted at freeze** — you are not reimplementing fusion, you are consuming a service that already does it, then applying the rarity re-rank on top.
+Cortex Search does hybrid lexical + vector natively. **This is why `bm25_index.py` and `vector_index.py` are deleted at freeze** - you are not reimplementing fusion, you are consuming a service that already does it, then applying the rarity re-rank on top.
 
-**`snowflake/sql/04_views.sql`** — the views `/economics` reads and Cortex Analyst is pointed at:
+**`snowflake/sql/04_views.sql`** - the views `/economics` reads and Cortex Analyst is pointed at:
 
 ```sql
 CREATE OR REPLACE VIEW NEULIT.CORE.V_COST_BY_CALL_SITE AS
@@ -193,7 +193,7 @@ GROUP BY 1;
 
 ---
 
-### 3.2 Connection layer — `backend/snowflake/session.py`
+### 3.2 Connection layer - `backend/snowflake/session.py`
 
 A single lazily-initialized, thread-safe Snowpark `Session` factory reading the `SNOWFLAKE_*` env vars.
 
@@ -207,7 +207,7 @@ Requirements:
 
 ---
 
-### 3.3 Corpus migration — `backend/app/corpus/`
+### 3.3 Corpus migration - `backend/app/corpus/`
 
 Rewrite `build_corpus.py` and `conditions.py` so the target is Snowflake, not JSON.
 
@@ -215,14 +215,14 @@ Rewrite `build_corpus.py` and `conditions.py` so the target is Snowflake, not JS
 2. `SEARCH_BLOB` is computed on write as `TITLE || ' ' || ABSTRACT`.
 3. `CONDITIONS.CONDITION_VEC` is filled with `SNOWFLAKE.CORTEX.EMBED_TEXT_768('snowflake-arctic-embed-m', DESCRIPTION)`, run as a single `UPDATE`, not row by row.
 4. `PAPER_COUNT` is derived, never hand-entered.
-5. The load is **idempotent** — re-running truncates and reloads. You will run this more than once and a half-loaded table is a bad hour.
+5. The load is **idempotent** - re-running truncates and reloads. You will run this more than once and a half-loaded table is a bad hour.
 6. `fetch_pubmed.py` stays as-is functionally; only change its output sink.
 
 **Verification gate before you move on:** `SELECT COUNT(*) FROM PAPERS` returns 329 and `SELECT COUNT(*) FROM CONDITIONS` returns 14, with exactly 10 rows where `IS_RARE = TRUE`. Paste both counts into `Handoff-Log.md`.
 
 ---
 
-### 3.4 Retrieval — `backend/snowflake/retrieval.py` + `backend/app/retrieval/`
+### 3.4 Retrieval - `backend/snowflake/retrieval.py` + `backend/app/retrieval/`
 
 `CortexSearchRetriever` implements `RetrievalPort` exactly as specified in the contracts document.
 
@@ -248,7 +248,7 @@ Rewrite `build_corpus.py` and `conditions.py` so the target is Snowflake, not JS
 
 ---
 
-### 3.5 Inference — `backend/app/llm/` + `backend/snowflake/llm.py`
+### 3.5 Inference - `backend/app/llm/` + `backend/snowflake/llm.py`
 
 Delete `backend/app/llm_client.py`. Delete the Groq client, the Gemini client, and every reference to `OPENAI_BASE_URL`.
 
@@ -259,8 +259,8 @@ Delete `backend/app/llm_client.py`. Delete the Groq client, the Gemini client, a
 - **Structured output.** Four of six call sites need parseable JSON. Cortex `COMPLETE` supports a `response_format` option in `options`; use it and pass the caller's `json_schema` through. If the model returns something unparseable anyway, retry once with a repair instruction, then return a degraded `ChatResult` with the raw content preserved in `.content` so Card 2A's caller can decide.
 - **Retry:** up to 3 attempts, exponential backoff `2**attempt` seconds, on transient Snowflake errors only. Never retry a schema-validation failure more than the one repair attempt.
 - **Timeout:** 20s per attempt. Hard-capped. The old build's 180s Paritok cold-start tolerance is gone and should not be recreated.
-- **No fallback provider.** If Cortex fails after retries, return `ChatResult(degraded=True)`. This is a decision, not an oversight — one provider is what makes the ledger's cost numbers trustworthy.
-- **Usage extraction.** Cortex `COMPLETE` returns token counts in its response metadata. Read them. If a given call shape does not return them, count with a local tokenizer and set a `estimated=True` marker in the log line — but never write a fabricated number to the ledger without flagging it.
+- **No fallback provider.** If Cortex fails after retries, return `ChatResult(degraded=True)`. This is a decision, not an oversight - one provider is what makes the ledger's cost numbers trustworthy.
+- **Usage extraction.** Cortex `COMPLETE` returns token counts in its response metadata. Read them. If a given call shape does not return them, count with a local tokenizer and set a `estimated=True` marker in the log line - but never write a fabricated number to the ledger without flagging it.
 - **Ledger write is mandatory and happens in `chat()`, in a `finally` block.** Every path, including degraded and exception paths, writes exactly one `LedgerEvent`. Card 2A is explicitly forbidden from writing to the ledger, so if you miss a path the cost data is silently wrong and nobody else can fix it.
 
 **Cost calculation.** Look up `MODEL_PRICING` for the active model (cache for the process lifetime), compute:
@@ -274,7 +274,7 @@ If the model is missing from `MODEL_PRICING`, write `cost_usd = 0` and log an er
 
 ---
 
-### 3.6 Ledger — `backend/snowflake/ledger.py`
+### 3.6 Ledger - `backend/snowflake/ledger.py`
 
 `SnowflakeLedger` implements `LedgerPort`.
 
@@ -286,9 +286,9 @@ If the model is missing from `MODEL_PRICING`, write `cost_usd = 0` and log an er
 
 ---
 
-### 3.7 Cortex Analyst — `backend/snowflake/analyst.py` + semantic model
+### 3.7 Cortex Analyst - `backend/snowflake/analyst.py` + semantic model
 
-**`snowflake/sql/semantic_model.yaml`** — the Cortex Analyst semantic model over `V_COST_BY_CALL_SITE`, `V_COST_PER_REQUEST`, `V_COST_BY_HOUR`, and `MODEL_PRICING`. Define:
+**`snowflake/sql/semantic_model.yaml`** - the Cortex Analyst semantic model over `V_COST_BY_CALL_SITE`, `V_COST_PER_REQUEST`, `V_COST_BY_HOUR`, and `MODEL_PRICING`. Define:
 
 - Logical table names a person would say out loud: "token spend", "requests", "models".
 - Measures: `total_tokens`, `cost_usd`, `calls`, `avg_latency_ms`, `degraded_calls`.
@@ -302,15 +302,15 @@ If the model is missing from `MODEL_PRICING`, write `cost_usd = 0` and log an er
 
 ---
 
-### 3.8 Routes — `backend/api/routes/economics.py`, `conditions.py`
+### 3.8 Routes - `backend/api/routes/economics.py`, `conditions.py`
 
-Implement the four `/economics` endpoints and keep `/conditions` working against the Snowflake `CONDITIONS` table. Shapes are frozen in §4 of the contracts document. **You may not change a response shape** — Card 2B has already generated TypeScript types from it. If a shape is genuinely wrong, file it in `Decisions.md` and change it at an integration checkpoint, with 2B present.
+Implement the four `/economics` endpoints and keep `/conditions` working against the Snowflake `CONDITIONS` table. Shapes are frozen in §4 of the contracts document. **You may not change a response shape** - Card 2B has already generated TypeScript types from it. If a shape is genuinely wrong, file it in `Decisions.md` and change it at an integration checkpoint, with 2B present.
 
 Rate limits via the existing `slowapi` limiter: 20/min on `/economics/summary`, 6/min on `/economics/ask` (Analyst calls are not cheap).
 
 ---
 
-### 3.9 Measurement — `backend/measurement/`
+### 3.9 Measurement - `backend/measurement/`
 
 The v1 measurement gate compared compressed vs. uncompressed prompts. That comparison no longer exists. Repurpose the directory to answer the question the new stack actually raises:
 
@@ -324,19 +324,19 @@ Output to `backend/measurement/results/decision.md`. This file is the source of 
 
 ---
 
-### 3.10 Tests — `backend/tests/snowflake/` and the reassigned files
+### 3.10 Tests - `backend/tests/snowflake/` and the reassigned files
 
 Two tiers, and the split matters:
 
-**Tier 1 — credential-free, must run in CI.** `NEULIT_PROFILE=fake`, no `SNOWFLAKE_*` env vars set.
+**Tier 1 - credential-free, must run in CI.** `NEULIT_PROFILE=fake`, no `SNOWFLAKE_*` env vars set.
 
-- `test_retrieval_contract.py` — `CortexSearchRetriever` with a mocked Snowpark session: verifies `exclude_pmids` is applied before truncation, that `top_k` is respected, that rarity multipliers land in the returned dataclass, and that an unavailable session returns `[]` rather than raising.
-- `test_llm_contract.py` — mocked `COMPLETE`: verifies exactly one ledger event per `chat()` call across success, retry-then-success, and total-failure paths; verifies `json_schema` is passed through; verifies the 20s timeout is set.
-- `test_cost_math.py` — pricing table math against hand-computed values, including the missing-model case yielding `0` plus an error log.
-- `test_ledger_buffer.py` — queue flush on count threshold, flush on time threshold, drop-oldest on overflow with the counter incrementing, `atexit` flush.
-- `test_health.py` — all four `health()` shapes.
+- `test_retrieval_contract.py` - `CortexSearchRetriever` with a mocked Snowpark session: verifies `exclude_pmids` is applied before truncation, that `top_k` is respected, that rarity multipliers land in the returned dataclass, and that an unavailable session returns `[]` rather than raising.
+- `test_llm_contract.py` - mocked `COMPLETE`: verifies exactly one ledger event per `chat()` call across success, retry-then-success, and total-failure paths; verifies `json_schema` is passed through; verifies the 20s timeout is set.
+- `test_cost_math.py` - pricing table math against hand-computed values, including the missing-model case yielding `0` plus an error log.
+- `test_ledger_buffer.py` - queue flush on count threshold, flush on time threshold, drop-oldest on overflow with the counter incrementing, `atexit` flush.
+- `test_health.py` - all four `health()` shapes.
 
-**Tier 2 — live, run by hand, marked `@pytest.mark.live`.** Real credentials. Round-trips the search service, one real `COMPLETE`, one real ledger insert and read-back, one real Analyst question.
+**Tier 2 - live, run by hand, marked `@pytest.mark.live`.** Real credentials. Round-trips the search service, one real `COMPLETE`, one real ledger insert and read-back, one real Analyst question.
 
 Reassigned v1 test files you now own: rewrite `test_hybrid_retrieval.py`, `test_retrieval_gold_set.py`, `test_corpus_coverage.py`, `test_build_corpus.py`, `test_fetch_pubmed.py`, `test_llm_client.py`, `test_api_conditions.py` against the new implementations. **Keep the filenames.** Renaming them creates a delete+add pair that shows up as a conflict for anyone else who touches the tests directory.
 
@@ -364,9 +364,9 @@ Reassigned v1 test files you now own: rewrite `test_hybrid_retrieval.py`, `test_
 ## 5. Things that will bite you, listed so they don't
 
 1. **Cortex Search Service indexing is not instant.** After `CREATE`, the service needs to build. Poll `SHOW CORTEX SEARCH SERVICES` until it is serving before you assume retrieval is broken.
-2. **`TARGET_LAG = '1 hour'` means reloading `PAPERS` does not immediately update the index.** During the corpus-tuning phase, either drop and recreate the service or set a shorter lag temporarily. Then set it back — a short lag burns credits continuously.
+2. **`TARGET_LAG = '1 hour'` means reloading `PAPERS` does not immediately update the index.** During the corpus-tuning phase, either drop and recreate the service or set a shorter lag temporarily. Then set it back - a short lag burns credits continuously.
 3. **`AUTO_SUSPEND` resume adds seconds to the first query after idle.** This is the new cold start, and it is much shorter than Paritok's was. Do not build a 180-second tolerance for it. Card 2B still has a staged loader; a 3-8 second resume is what it now covers.
-4. **Cortex model availability is region-specific.** Confirm your account's region supports `claude-3-5-sonnet` on `COMPLETE` before building around it. If not, pick the best available and record the choice in `Decisions.md` — the model name flows into `MODEL_PRICING` and the ledger.
+4. **Cortex model availability is region-specific.** Confirm your account's region supports `claude-3-5-sonnet` on `COMPLETE` before building around it. If not, pick the best available and record the choice in `Decisions.md` - the model name flows into `MODEL_PRICING` and the ledger.
 5. **Credits.** Check consumption at CP1 and CP2. If the burn rate projects past the allocation, drop the warehouse to XSMALL if it is not already, raise `AUTO_SUSPEND` aggressiveness, and cut the Analyst rate limit.
 6. **Do not add a Groq fallback back in "just in case."** It reintroduces a second pricing model, breaks the ledger's single-source claim, and lives in a file Card 2A is not allowed to see.
 

@@ -1,4 +1,4 @@
-# NeuLitTrace — 80-second demo voiceover
+# NeuLitTrace - 80-second demo voiceover
 
 **Video:** `neulittrace-demo.mp4` · 1440×900 · 79.9s
 **Recorder:** `frontend/tests/record-demo.mjs`
@@ -67,10 +67,10 @@ Play **0:33–0:47** only:
 | Spoken | Where it comes from |
 |---|---|
 | 329 papers, 14 conditions | `backend/data/corpus.json` |
-| 10 papers, 1,984 tokens | live request, Tight — on screen |
-| 30 papers, 1,286 tokens | live request, Generous — on screen |
+| 10 papers, 1,984 tokens | live request, Tight - on screen |
+| 30 papers, 1,286 tokens | live request, Generous - on screen |
 | 35% fewer tokens | 1,286 vs 1,984 |
-| 81% recall improvement | 0.4118 → 0.7475, 28-query gold set — `results/policy_bench.md` |
+| 81% recall improvement | 0.4118 → 0.7475, 28-query gold set - `results/policy_bench.md` |
 | 4 of 4 claims verified | on screen, §03 |
 | 29 of 30 rare-weighted | on screen, §03 |
 | 1.4 cents, 7,093 tokens | on screen, §03 |

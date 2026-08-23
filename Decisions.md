@@ -13,7 +13,7 @@ it." This decision is being recorded now, ahead of CP3, precisely so it does
 not get made under CP3 pressure with a live account already burning
 credits.
 
-**Status:** not yet triggered in this sandbox — no live Snowflake account
+**Status:** not yet triggered in this sandbox - no live Snowflake account
 was available to check region/model availability. This entry documents the
 plan for whoever hits it first with real credentials.
 
@@ -27,28 +27,28 @@ in the account's region:**
    SELECT SNOWFLAKE.CORTEX.COMPLETE('claude-3-5-sonnet', 'ping');
    ```
    Snowflake's error message on an unsupported model names the account's
-   region and (usually) suggests supported alternatives — capture the exact
+   region and (usually) suggests supported alternatives - capture the exact
    error text into this entry before proceeding.
 
 2. **Pick the best available substitute, in this preference order** (per
-   plan-v2/00-SHARED-CONTRACTS.md section 2.2's single-provider constraint —
+   plan-v2/00-SHARED-CONTRACTS.md section 2.2's single-provider constraint  - 
    no fallback chain, no second pricing model, no Groq or non-Cortex
    provider under any circumstance):
    - `claude-sonnet-4-5` if available (Anthropic's current-generation model
-     on Cortex as of this research pass — see the `MODEL_PRICING` research
+     on Cortex as of this research pass - see the `MODEL_PRICING` research
      note in `snowflake/sql/02_tables.sql` and `Handoff-Log.md` item 4,
      which already seeds a pricing row for this model as a hedge).
    - Otherwise, the best available Claude model on `COMPLETE` in that
      region, largest context/quality tier Snowflake exposes.
    - Only if no Claude model is available at all: the best available
      non-Claude model Cortex COMPLETE exposes in that region. This is a
-     last resort, not a preference — flag it loudly in this file if it
+     last resort, not a preference - flag it loudly in this file if it
      happens, since it changes the JSON-schema/repair-prompt assumptions
      baked into `backend/app/llm/json_repair.py` (which were tuned against
      Claude's response shape) and may need re-validation.
 
 3. **Wire the substitution through configuration, not code.** Set
-   `SNOWFLAKE_CORTEX_MODEL=<chosen-model>` in the deployment environment —
+   `SNOWFLAKE_CORTEX_MODEL=<chosen-model>` in the deployment environment  - 
    `backend/snowflake/llm.py`'s `_active_model()` already reads this env
    var and defaults to `claude-3-5-sonnet` only when it's unset, so no code
    change is required in `CortexLLMClient`.
@@ -56,7 +56,7 @@ in the account's region:**
 4. **Update `MODEL_PRICING` for the chosen model.** `INSERT`/`MERGE` a row
    into `NEULIT.CORE.MODEL_PRICING` for `<chosen-model>` with real credit
    rates from `SNOWFLAKE.ACCOUNT_USAGE` / the account's Cortex rate card
-   (not list-price research numbers — see `Handoff-Log.md` item 4 on why
+   (not list-price research numbers - see `Handoff-Log.md` item 4 on why
    the seeded rows are a starting point, not a substitute for account
    verification) before any `/economics` cost number can be trusted for
    this model. `CortexLLMClient.health()` already returns
@@ -68,7 +68,7 @@ in the account's region:**
    `claude-3-5-sonnet` by name anywhere in the Cortex Analyst call (it does,
    in `backend/snowflake/analyst.py`'s hardcoded
    `SNOWFLAKE.CORTEX.COMPLETE('claude-3-5-sonnet', ...)` call for the
-   Analyst-over-COMPLETE path) — swap it to read `SNOWFLAKE_CORTEX_MODEL`
+   Analyst-over-COMPLETE path) - swap it to read `SNOWFLAKE_CORTEX_MODEL`
    the same way `llm.py` does, or hardcode the confirmed-available
    substitute, so Analyst and the main chat path never disagree about which
    model is live.
@@ -84,7 +84,7 @@ by then) first gets real Snowflake credentials and runs CP1/CP2 setup.
 `.env`, which is gitignored):**
 
 1. Confirmed unavailable. `SELECT SNOWFLAKE.CORTEX.COMPLETE('claude-3-5-sonnet', 'ping')`
-   failed after a full 20s statement timeout (not a fast 400 — the call hangs
+   failed after a full 20s statement timeout (not a fast 400 - the call hangs
    until timeout rather than failing fast, which is itself worth knowing:
    don't assume "slow" means "warehouse cold-starting", check the model name
    first). Retried directly via the connector with `timeout=25`:
@@ -92,7 +92,7 @@ by then) first gets real Snowflake credentials and runs CP1/CP2 setup.
    512513 (P0000): Request failed for external function COMPLETE with
    remote service error: '400 'unknown model "claude-3-5-sonnet"''
    ```
-2. Substitute chosen: **`claude-sonnet-4-5`** — exactly the hedge this file
+2. Substitute chosen: **`claude-sonnet-4-5`** - exactly the hedge this file
    predicted. Verified live (`SELECT SNOWFLAKE.CORTEX.COMPLETE('claude-sonnet-4-5', ...)`
    returned `'PONG'` in 1.8s). `claude-4-sonnet` also resolved successfully as
    an alias but `claude-sonnet-4-5` is the canonical name kept. Also
@@ -106,10 +106,10 @@ by then) first gets real Snowflake credentials and runs CP1/CP2 setup.
    active model beyond this fallback).
 4. `MODEL_PRICING` already had a `claude-sonnet-4-5` row from the earlier
    research pass (list-price sourced, not yet reconciled against
-   `SNOWFLAKE.ACCOUNT_USAGE` — that table needs usage history to populate on
+   `SNOWFLAKE.ACCOUNT_USAGE` - that table needs usage history to populate on
    a fresh account, so exact reconciliation is still a follow-up once the
    account has real billed usage).
-5. `backend/snowflake/analyst.py` no longer hardcodes `claude-3-5-sonnet` —
+5. `backend/snowflake/analyst.py` no longer hardcodes `claude-3-5-sonnet`  - 
    it now calls the same `_active_model()` (reads `SNOWFLAKE_CORTEX_MODEL`)
    so the Analyst path and the main chat path can never disagree about which
    model is live.
@@ -163,7 +163,7 @@ wiring, and is the other party to the section 4 HTTP contract) and Card 2B
 (consumes this shape via generated `api-types.ts`) sign-off before this
 lands, per the section 4 rule above. Not resolved by Card 1 in this pass.
 
-## POST /query gains an optional `policy` — additive, logged per section 4
+## POST /query gains an optional `policy` - additive, logged per section 4
 
 **Decided 2026-08-07.** `plan-v2/00-SHARED-CONTRACTS.md` section 4 freezes the
 `POST /query` shape and requires shape changes to be logged here rather than
@@ -187,7 +187,7 @@ PolicyOut = { label, topK, compressTopN, papersInPrompt,
 `/economics/summary` `cache` field logged above:
 
 1. **Both halves are additive and optional.** Omitting `policy` from the
-   request yields byte-identical behaviour to before — `pipeline.run_query`'s
+   request yields byte-identical behaviour to before - `pipeline.run_query`'s
    `policy` kwarg defaults to `None`, which is the pre-existing code path
    (`RETRIEVAL_TOP_K` papers, no compression). The response field is `null`.
    Pinned by `test_api_query.py`'s contract-shape test, which now asserts
@@ -201,11 +201,11 @@ PolicyOut = { label, topK, compressTopN, papersInPrompt,
    quietly runs the wrong arm is worse than one that errors.
 
 **Why it exists:** it is the API surface for the breadth/depth trade measured
-in `backend/measurement/results/policy_bench.md` — rare-condition recall
+in `backend/measurement/results/policy_bench.md` - rare-condition recall
 0.4118 -> 0.7475 (+81.5%) at −0.34% cost, by retrieving 3x the papers and
 compressing each to one sentence. Without a request-level toggle the result is
 a number in a JSON file; with it, the two arms can be run live side by side.
 
 **Not decided here:** whether `GENEROUS` should become the default. That needs
-a live citation-checked run — the bench calls no LLM and so measures what
+a live citation-checked run - the bench calls no LLM and so measures what
 reaches the prompt, not answer quality. Opt-in until that exists.

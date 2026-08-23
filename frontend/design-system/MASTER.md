@@ -1,4 +1,4 @@
-# Trace — design system
+# Trace - design system
 
 Supersedes the dark purple/pink direction entirely. Do not patch the old file; this replaces it.
 
@@ -20,7 +20,7 @@ semantic pair.
 **Glow is kept**, rebuilt for a white field (revision 2). On black, glow was ambient haze.
 On white it is *emission*: light coming off the blue, never a coloured background. Rules:
 
-- Glow is always `--blue-500` at low alpha over white — never a second hue, never a
+- Glow is always `--blue-500` at low alpha over white - never a second hue, never a
   gradient between two hues, never behind text.
 - Three carriers only: (1) the hero blooms, (2) canvas `shadowBlur` on neuron strokes and
   atlas hotspots, (3) a blue-tinted drop shadow on the two hero-adjacent panels
@@ -65,14 +65,14 @@ keep `258.28`.
 No third accent hue. Amber is the only non-blue semantic, and it means exactly one thing:
 *this claim could not be verified against its source.*
 
-### 2.1 The contrast rule — state this in code review
+### 2.1 The contrast rule - state this in code review
 
 | Token | vs white | Verdict |
 |---|---|---|
 | `--blue-400` | 2.17:1 | decoration only |
 | `--blue-500` | **2.88:1** | **fills, shapes, illustration, the neuron canvas. Never text. Nothing white on top of it.** |
 | `--blue-600` | 4.06:1 | large text 24 px+; absolute floor for a filled button with a white label |
-| `--blue-700` | 5.84:1 | blue text, links, icon glyphs — the working minimum |
+| `--blue-700` | 5.84:1 | blue text, links, icon glyphs - the working minimum |
 | `--blue-800` | 8.46:1 | emphasis text, active nav |
 
 White text on `--blue-500` is also 2.88:1 and fails. A brand-blue button with a white label
@@ -90,12 +90,12 @@ rather than decorative, and it separates the product from the geometric-sans ref
 without weakening the display voice.
 
 **Space Grotesk is dropped (revision 3).** Its geometric skeleton read mechanical next to
-Newsreader — closed apertures, uniform stroke, single-storey feel at small sizes. The UI and
+Newsreader - closed apertures, uniform stroke, single-storey feel at small sizes. The UI and
 body face is now **Source Sans 3**: humanist, open apertures, a true italic, drawn for long
 reading and small UI text alike, and already the house sans of a good deal of scholarly
 publishing. It sits under Newsreader without arguing with it.
 
-**Martian Mono is dropped** for the same reason — very wide, very engineered. Data is now
+**Martian Mono is dropped** for the same reason - very wide, very engineered. Data is now
 **IBM Plex Mono**, which keeps the "this is a record, not prose" signal but has humanist
 letterforms and a far better small-size colour. Sora is dropped entirely.
 
@@ -139,11 +139,11 @@ the "published literature" reading:
 
 **Masthead.** The page opens on a 4 px ink bar and a hairline-ruled header, the wordmark
 carrying an edition line (`Corpus ed. 2026.08 · 329 papers`) in mono beneath it. Rules are
-ink, not `--rule` — the masthead and the hero's internal divisions are the only places
+ink, not `--rule` - the masthead and the hero's internal divisions are the only places
 full-strength ink hairlines are used.
 
-**Hero: the specimen field.** The neuron stays free-floating and full-bleed — no frame, no
-panel — but the gesture is inverted from the build it replaces. There, the soma sat right of
+**Hero: the specimen field.** The neuron stays free-floating and full-bleed - no frame, no
+panel - but the gesture is inverted from the build it replaces. There, the soma sat right of
 centre and burst radially outward as a background wash. Here the soma sits *below the bottom
 edge* at `rootX 0.70, rootY 1.04`, and eight primaries fan **upward** across a −2.62…−0.58
 rad arc, so the structure grows into the page from beneath the fold like a specimen rising
@@ -157,8 +157,8 @@ solid white while the graph stays at full strength in the lower-right quadrant.
 **Hero composition.** Display headline hangs at the top with the section rail; the lede,
 the ruled "Begin a query ↓" link, and a right-aligned corpus rail (three figures on a
 hairline) sit on one baseline far below it, with the graph filling the gap between. Four
-`--blue-300` corner registration ticks sit on the section edges — the figure-plate cue
-without a container — and a mono strip runs along the bottom: `Live render · depth 5 ·
+`--blue-300` corner registration ticks sit on the section edges - the figure-plate cue
+without a container - and a mono strip runs along the bottom: `Live render · depth 5 ·
 8 primary · 0.72 decay · illustrative, not patient data`.
 
 **Section rail.** Every section opens with `§NN — hairline — EYEBROW`: a mono section number
@@ -169,7 +169,7 @@ bare eyebrow is gone; the numbering gives the page an apparatus a reader can cit
 superscripts: one grid row per sentence, citation marker right-aligned in a 56 px margin
 column, sentence in the measure beside it, hairline between rows. An unsupported sentence
 takes a 2 px amber left rule, an 18 px inset, a warm-white row fill, and its objection
-written directly underneath — the flag is structural, not a footnote.
+written directly underneath - the flag is structural, not a footnote.
 
 **Prevalence ladder.** The old rare/common chip rows are replaced by a single ranked table
 of the whole corpus, rarest first, with a bar whose length is the retrieval boost and a
@@ -183,9 +183,9 @@ white, regular, hollow-dotted, short-barred. Rare-vs-common is legible from acro
 
 Legible without reading the labels:
 
-- **Rare** — filled chip: `--blue-100` background, `--blue-200` border, `--blue-800` text,
+- **Rare** - filled chip: `--blue-100` background, `--blue-200` border, `--blue-800` text,
   solid `--blue-500` dot, prevalence figure appended in mono.
-- **Common** — outline chip: white background, `--rule` border, `--dim` text, hollow dot.
+- **Common** - outline chip: white background, `--rule` border, `--dim` text, hollow dot.
 
 Same rule in result rows: rare-condition rows get a `--blue-50` row fill and a
 `--blue-800` rank number; common rows stay white with a `--dim` rank.
@@ -237,21 +237,21 @@ Under `prefers-reduced-motion: reduce` the loop renders one frame at `t = 0` and
 
 ---
 
-## 8. Motion — anime.js v4
+## 8. Motion - anime.js v4
 
 `import { animate, stagger, createTimeline } from 'animejs'`. `animejs` is a new dependency
-in `frontend/package.json` — note it in `Handoff-Log.md`.
+in `frontend/package.json` - note it in `Handoff-Log.md`.
 
 | Interaction | Property | From → to | Duration | Easing | Stagger |
 |---|---|---|---|---|---|
 | Section entrance | translateY, opacity | 28 → 0 px, 0 → 1 | 900 ms | `cubicBezier(.16,1,.3,1)` | once, on intersection (threshold 0.08) |
 | Retrieval trace steps | translateY, opacity | 14 → 0 px, 0 → 1 | 420 ms | `cubicBezier(.16,1,.3,1)` | `stagger(150)` |
 | Citation resolves | scale | 1 → 1.28 → 1 | 420 ms | `cubicBezier(.16,1,.3,1)` | `stagger(90)` |
-| Dashboard headline | counted value | 0 → 0.0041 | 1100 ms | `cubicBezier(.16,1,.3,1)` | — |
+| Dashboard headline | counted value | 0 → 0.0041 | 1100 ms | `cubicBezier(.16,1,.3,1)` | - |
 | Stage bars | width | 0% → target | 760 ms | `cubicBezier(.16,1,.3,1)` | `stagger(70)` |
-| Chips, toggles, tabs | transform, background | knob 0 → 14 px | 160 ms | `cubicBezier(.16,1,.3,1)` | — |
+| Chips, toggles, tabs | transform, background | knob 0 → 14 px | 160 ms | `cubicBezier(.16,1,.3,1)` | - |
 | Hero copy entrance | translateY, opacity | 22 → 0 px, 0 → 1 | 800–900 ms | `cubicBezier(.16,1,.3,1)` | 0 / 80 / 180 / 300 / 380 / 460 ms |
-| Primary button hover | transform, box-shadow | y 0 → -1 px, glow 0.34 → 0.50 | 180 ms | `cubicBezier(.16,1,.3,1)` | — |
+| Primary button hover | transform, box-shadow | y 0 → -1 px, glow 0.34 → 0.50 | 180 ms | `cubicBezier(.16,1,.3,1)` | - |
 | Hero blooms (CSS) | transform, opacity | scale 1 → 1.08, drift ±4% | 17–26 s loop | `ease-in-out` | 0 / 3 s offsets |
 | Atlas hotspot rings (canvas) | radius, alpha | r 10 → 54 px, 0.42 → 0 | 1.8 s loop | linear | 0.33 phase offset each |
 
@@ -273,12 +273,12 @@ Designed, not assumed. Rendered in the states gallery of the redesign file.
 
 | Panel | loading | empty | error | degraded / not reporting |
 |---|---|---|---|---|
-| Summary | 3-line skeleton + stage timeline | "No paper cleared the relevance floor" + broaden action | "Inference did not respond. Nothing was billed." + retry | — |
-| Memory | inline skeleton | "No profile yet" | — | "Memory timed out at 300 ms. This answer is unpersonalized." |
-| Atlas | skeleton + "Rendering Harvard-Oxford surface" | — | "Atlas unavailable" | — |
-| Cost | skeleton bars | — | "TOKEN_LEDGER unreachable. Cost attribution suspended." | "Ledger reachable, no priced rows. Cost is unavailable, not zero." |
-| Analyst | "Generating SQL" | — | "Cortex Analyst unavailable" | — |
-| Health footer | grey dots | — | amber hollow dot + service name in amber | amber solid dot |
+| Summary | 3-line skeleton + stage timeline | "No paper cleared the relevance floor" + broaden action | "Inference did not respond. Nothing was billed." + retry | - |
+| Memory | inline skeleton | "No profile yet" | - | "Memory timed out at 300 ms. This answer is unpersonalized." |
+| Atlas | skeleton + "Rendering Harvard-Oxford surface" | - | "Atlas unavailable" | - |
+| Cost | skeleton bars | - | "TOKEN_LEDGER unreachable. Cost attribution suspended." | "Ledger reachable, no priced rows. Cost is unavailable, not zero." |
+| Analyst | "Generating SQL" | - | "Cortex Analyst unavailable" | - |
+| Health footer | grey dots | - | amber hollow dot + service name in amber | amber solid dot |
 
 Degraded is never silent and never rendered as zero. "Unavailable" and "0.0000" are
 different claims.
@@ -302,6 +302,6 @@ different claims.
   halo ring, + Newsreader 600 at 23 px. 22 px variant on `/cost`.
 - Median cost per query is the largest element on `/cost` and currently the only figure the
   backend contract does not supply. If the field is still missing at build time, render the
-  "not yet reporting" state — do not compute a client-side median. That is a `Blockers.md`
+  "not yet reporting" state - do not compute a client-side median. That is a `Blockers.md`
   entry for Card 2A, not a backend edit.
 - `animejs` added to `frontend/package.json`; log it in `Handoff-Log.md`.
