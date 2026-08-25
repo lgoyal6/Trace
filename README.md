@@ -57,6 +57,64 @@ snowflake/  Snowflake setup and data objects
 docs/       VitePress documentation and diagrams
 ```
 
+## Request path
+
+`run_query` is one function with a fixed order. Two steps in it are easy to read backwards: memory adjusts scores but is deliberately the weaker signal, and compression only ever reaches the summary prompt.
+
+```mermaid
+flowchart TD
+  Q["POST /query"] --> PZ{"personalize"}
+  PZ -->|"true"| MEM["EverMind read: profile, seen_pmids, health<br/>one shared 300 ms budget"]
+  MEM -->|"all three back in budget"| HY["hyde: LLM query expansion"]
+  MEM -->|"any timeout, or health not ok"| HY
+  PZ -->|"false"| HY
+  HY --> RET["Cortex Search, top_k 10<br/>over-fetch 40, hard-exclude seen pmids<br/>0.6 x query + 0.4 x hyde, then x1.6 if rare"]
+  RET --> RR["memory re-rank<br/>seen x0.6, explored condition x1.15<br/>clamped to 0.6 - 1.2"]
+  RR --> GATE{"relevance_check"}
+  GATE -->|"not relevant, round 1"| REF["refine the query, re-run hyde"]
+  REF --> RET
+  GATE -->|"relevant, or round 2 reached"| TOP["top papers, uncompressed<br/>5 by default, policy.top_k under a policy"]
+  TOP -->|"a compressed copy"| CMP["extractive compression<br/>policy runs only"]
+  CMP --> SUM["summary call"]
+  SUM --> CC["citation_check"]
+  TOP --> CC
+  CC --> RESP["response: summary, citations,<br/>papers, cost by call site"]
+  TOP --> RESP
+  style RR fill:#fde68a,stroke:#b45309,color:#111
+  style TOP fill:#bfdbfe,stroke:#1d4ed8,color:#111
+```
+
+The re-rank cap is the personalization argument in two numbers: rarity multiplies a rare paper by 1.6 inside retrieval, and the memory multiplier is clamped to `[0.6, 1.2]`, so the signal that can reorder results the most is the one that has nothing to do with who is asking.
+
+The memory read is all-or-nothing. `get_profile`, `seen_pmids` and `health` share one 300 ms budget; any of the three missing the budget, or a `health` that is not `ok`, returns an explicitly unpersonalized answer. `health` rides along precisely because the other two return empty defaults instead of errors, so a fast success full of defaults would otherwise be indistinguishable from a fast success full of real data.
+
+Compression runs on a copy. `check_citations` and the `papers` in the response both read the original abstracts, so the token saving never reaches the text a claim is verified against.
+
+### Where cost is recorded
+
+```mermaid
+flowchart TD
+  IN["LLMPort.chat(messages, call_site)"] --> RTE["model_for_call_site<br/>cheap: hyde, relevance_check<br/>strong: summary, citation_check, refine, memory_distill"]
+  RTE --> CACHE{"cacheable call site?<br/>hyde and relevance_check only"}
+  CACHE -->|"hit, 300 s TTL"| HIT["return the cached ChatResult<br/>Cortex is never called"]
+  CACHE -->|"miss, or not cacheable"| AVAIL{"Snowflake session up?"}
+  AVAIL -->|"no"| DEG["degraded ChatResult, empty content"]
+  AVAIL -->|"yes"| CALL["CORTEX.COMPLETE<br/>3 attempts, exponential backoff"]
+  CALL -->|"every attempt failed"| DEG
+  CALL -->|"ok"| OKP["parse, one JSON repair retry,<br/>price against MODEL_PRICING"]
+  HIT --> LED["exactly one LedgerEvent per chat call<br/>0 tokens on a hit, 0 cost when degraded"]
+  DEG --> LED
+  OKP --> LED
+  LED --> QUEUE["bounded queue, 1000 events<br/>drop-oldest, never blocks the caller"]
+  QUEUE --> FLUSH["background thread<br/>flush every 2 s, batches of 25"]
+  FLUSH --> TL[("NEULIT.CORE.TOKEN_LEDGER")]
+  style LED fill:#fde68a,stroke:#b45309,color:#111
+```
+
+Every exit from `chat()` writes exactly one row. The cache hit writes its own before returning early; a `finally` block covers success, all-three-attempts-failed, and an unhandled exception alike. A degraded call is recorded at zero cost rather than dropped, so a missing `TOKEN_LEDGER` row means a lost request, not a free one.
+
+`record()` only enqueues. The INSERT happens on the flush thread, which is why a ledger outage costs rows and never request latency, and why `health()` reports `queued` and `dropped` instead of claiming success.
+
 ## Quickstart
 
 Start the credential-free backend profile:
