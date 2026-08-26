@@ -17,7 +17,7 @@ export function QueryForm({ onResult, onCurrentQueryChange }: Props) {
   const [personalize, setPersonalize] = useState(true);
   // null == omit the field == today's default path. Kept as a tri-state rather
   // than a boolean so "I did not ask for a policy" stays distinguishable from
-  // "I explicitly asked for tight" — they retrieve the same 10 papers but the
+  // "I explicitly asked for tight" - they retrieve the same 10 papers but the
   // default path applies no compression at all.
   const [policy, setPolicy] = useState<RetrievalPolicy | null>(null);
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");

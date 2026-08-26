@@ -146,7 +146,7 @@ class EverOSMemory:
         """Regenerates and persists distilled_context, but only on the
         multiple-of-3 query-count trigger or a specialty change. This is the
         one call site (`memory_distill`) EverOSMemory drives on its own,
-        outside pipeline.py's request_id chain — MemoryPort.record_query has
+        outside pipeline.py's request_id chain - MemoryPort.record_query has
         no request_id parameter to thread one through, so a fresh request_id
         is minted here for this side-channel call. See Decisions.md.
         """

@@ -1,4 +1,4 @@
-"""Scarcity multiplier — what a rare-condition memory is worth over a common one.
+"""Scarcity multiplier - what a rare-condition memory is worth over a common one.
 
 A fact about Alzheimer's is cheap: 40 papers in the corpus say it, and any of
 them will re-derive it. A fact about Neurolymphomatosis is expensive: 4 papers

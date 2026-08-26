@@ -1,6 +1,6 @@
 # Non-secret Snowflake platform configuration for Card 1's implementations.
 # Credentials (account/user/password) come only from SNOWFLAKE_* env vars
-# (see .env.example) — never put a secret in this file, it is committed.
+# (see .env.example) - never put a secret in this file, it is committed.
 
 database: NEULIT
 schema: CORE

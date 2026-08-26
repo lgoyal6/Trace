@@ -53,7 +53,7 @@ function ProfileSidebar({ refreshKey }: { refreshKey: number }) {
         className="flex w-full items-center justify-between px-5 py-4 font-body text-[13px] font-semibold text-ink"
       >
         Profile
-        <span className="font-data text-dim">{open ? "—" : "+"}</span>
+        <span className="font-data text-dim">{open ? "-" : "+"}</span>
       </button>
       {open && (
         <div className="border-t border-rule p-5">
@@ -152,7 +152,7 @@ function ColdWarmComparison({ result, query }: { result: QueryResult | null; que
   const range =
     multipliers.length > 0
       ? `${Math.min(...multipliers).toFixed(2)}–${Math.max(...multipliers).toFixed(2)}`
-      : "—";
+      : "-";
 
   return (
     <div className="border border-rule bg-white">

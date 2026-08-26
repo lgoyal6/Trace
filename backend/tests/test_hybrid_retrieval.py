@@ -1,5 +1,5 @@
 """Reassigned to Card 1 at contracts-v1. v1's HybridRetriever (BM25 + local
-vectors) is deleted — hybrid retrieval now lives in Snowflake Cortex Search
+vectors) is deleted - hybrid retrieval now lives in Snowflake Cortex Search
 Service (backend/snowflake/retrieval.py, covered by
 backend/tests/snowflake/test_retrieval_contract.py). This file now exercises
 the two pieces that survive locally: the rarity formula, byte-identical to

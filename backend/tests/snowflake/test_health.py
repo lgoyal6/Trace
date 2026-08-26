@@ -1,4 +1,4 @@
-"""Tier 1 — credential-free. health() shape for all Card 1 ports/wrappers."""
+"""Tier 1 - credential-free. health() shape for all Card 1 ports/wrappers."""
 from __future__ import annotations
 
 from backend.snowflake import analyst as analyst_module

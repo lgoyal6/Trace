@@ -3,12 +3,12 @@
 
 import type { PolicyOut, RetrievalPolicy } from "@/lib/api";
 
-/* §02b — Retrieval breadth.
+/* §02b - Retrieval breadth.
  *
  * Every number rendered here is measured server-side on THIS request by the
  * real compressor (backend/app/pipeline.py's _compress_for_policy) and handed
  * back on QueryResponse.policy. Nothing on this screen is a stored benchmark
- * figure or a client-side estimate — if the panel shows a token count, the
+ * figure or a client-side estimate - if the panel shows a token count, the
  * backend counted it on the abstracts that just went into the prompt.
  *
  * The gold-set result this reproduces per-request lives in
@@ -24,13 +24,13 @@ export const POLICY_COPY: Record<
     name: "Tight",
     dial: "10 papers · 4 sentences each",
     blurb:
-      "Today's shipped retrieval breadth. Depth over coverage — a rare condition with four papers in the corpus can fall below the cut entirely.",
+      "Today's shipped retrieval breadth. Depth over coverage - a rare condition with four papers in the corpus can fall below the cut entirely.",
   },
   generous: {
     name: "Generous",
     dial: "30 papers · 1 sentence each",
     blurb:
-      "Three times the papers, a quarter of the text per paper. Across the 28-query gold set this lands inside Tight's token budget (−0.7%) while rare-condition recall rises 81%. On any single query it can run either side of Tight — short abstracts skip compression — so treat the tokens below as this request's, not a guarantee.",
+      "Three times the papers, a quarter of the text per paper. Across the 28-query gold set this lands inside Tight's token budget (−0.7%) while rare-condition recall rises 81%. On any single query it can run either side of Tight - short abstracts skip compression - so treat the tokens below as this request's, not a guarantee.",
   },
 };
 
@@ -143,7 +143,7 @@ export function PolicyPanel({ policy }: { policy: PolicyOut | null | undefined }
           {copy.blurb}
         </p>
         <p className="mt-3 max-w-[62ch] font-body text-[12.5px] leading-relaxed text-dim">
-          Counted on this request by the same compressor the measurement gate uses — not a
+          Counted on this request by the same compressor the measurement gate uses - not a
           stored benchmark figure. Compression feeds the summary prompt only; the abstracts
           shown below, and the ones each citation is verified against, are the full originals.
         </p>

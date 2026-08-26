@@ -169,9 +169,9 @@ export function EconomyDashboard() {
 
             <div className="mt-8 flex flex-wrap gap-6">
               {[
-                [summary ? summary.total_requests.toLocaleString() : "—", "REQUESTS"],
-                [summary ? `$${summary.total_cost_usd.toFixed(4)}` : "—", "TOTAL SPEND"],
-                [summary ? summary.total_tokens.toLocaleString() : "—", "TOKENS"],
+                [summary ? summary.total_requests.toLocaleString() : "-", "REQUESTS"],
+                [summary ? `$${summary.total_cost_usd.toFixed(4)}` : "-", "TOTAL SPEND"],
+                [summary ? summary.total_tokens.toLocaleString() : "-", "TOKENS"],
               ].map(([value, label]) => (
                 <div key={label} className="flex flex-col gap-1">
                   <span className="font-data text-xl text-ink">{value}</span>

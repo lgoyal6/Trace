@@ -49,7 +49,7 @@ export function RarityComparison() {
           {rare.length > 0 && (
             <div className="flex items-center gap-4 px-6 py-2.5 md:px-[30px]">
               <span className="font-data text-[10px] uppercase tracking-wide text-dim">
-                Rarity floor — no boost applied below this line
+                Rarity floor - no boost applied below this line
               </span>
               <span className="h-px flex-1 bg-ink" aria-hidden="true" />
             </div>

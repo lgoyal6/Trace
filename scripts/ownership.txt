@@ -2,7 +2,7 @@
 # One line per (lane, glob) pair. Lane is c1, c2a, or c2b. Glob is matched
 # against staged paths with bash `case`, so a bare `*` already matches `/`
 # (no `**` needed). FROZEN and "untouched by everyone" paths from
-# plan-v2/00-SHARED-CONTRACTS.md section 3 are deliberately absent here —
+# plan-v2/00-SHARED-CONTRACTS.md section 3 are deliberately absent here -
 # no lane may stage them.
 
 c1 backend/snowflake/*

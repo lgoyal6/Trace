@@ -1,4 +1,4 @@
-"""Tier 2 — live. Phase card section 3.10: real search-service round-trip,
+"""Tier 2 - live. Phase card section 3.10: real search-service round-trip,
 one real COMPLETE call, one real ledger insert+read-back, one real Analyst
 question.
 
@@ -6,7 +6,7 @@ Every test here is `@pytest.mark.live` and is skipped automatically by
 conftest.py's `pytest_collection_modifyitems` unless SNOWFLAKE_ACCOUNT /
 SNOWFLAKE_USER / SNOWFLAKE_PASSWORD are all set in the environment (see
 backend/snowflake/session.py's `_connection_params`). None of these were run
-in this sandbox — no Snowflake account or credentials were available. Run by
+in this sandbox - no Snowflake account or credentials were available. Run by
 hand once you have a real account:
 
     SNOWFLAKE_ACCOUNT=... SNOWFLAKE_USER=... SNOWFLAKE_PASSWORD=... \\
@@ -14,7 +14,7 @@ hand once you have a real account:
 
 These tests intentionally talk to the real client classes
 (CortexSearchRetriever, CortexLLMClient, SnowflakeLedger, CortexAnalyst) with
-no mocking of get_session()/snowflake_available() — that's what makes them
+no mocking of get_session()/snowflake_available() - that's what makes them
 Tier 2 rather than a duplicate of the Tier 1 contract tests.
 """
 from __future__ import annotations
@@ -45,16 +45,16 @@ def test_search_service_round_trip_returns_gold_set_results():
 
     Requires 03_search_service.sql to have been run and PAPERS_SEARCH to be
     ACTIVE (poll `SHOW CORTEX SEARCH SERVICES IN SCHEMA NEULIT.CORE;` first
-    if this fails with an empty result — indexing is not instant, see phase
+    if this fails with an empty result - indexing is not instant, see phase
     card section 5 item 1).
     """
-    assert snowflake_available(), "SNOWFLAKE_* env vars set but session unavailable — check credentials"
+    assert snowflake_available(), "SNOWFLAKE_* env vars set but session unavailable - check credentials"
 
     retriever = CortexSearchRetriever()
     results = retriever.search(GOLD_SET_QUERY, top_k=10)
 
     assert isinstance(results, list)
-    assert len(results) > 0, "gold-set query returned zero results — check PAPERS_SEARCH is ACTIVE and PAPERS is loaded"
+    assert len(results) > 0, "gold-set query returned zero results - check PAPERS_SEARCH is ACTIVE and PAPERS is loaded"
     top = results[0]
     assert top.paper.pmid
     assert 0.0 <= top.score
@@ -70,7 +70,7 @@ def test_real_complete_call_returns_ungraded_content():
     """One real SNOWFLAKE.CORTEX.COMPLETE call through CortexLLMClient,
     with a real SnowflakeLedger receiving the resulting LedgerEvent.
     """
-    assert snowflake_available(), "SNOWFLAKE_* env vars set but session unavailable — check credentials"
+    assert snowflake_available(), "SNOWFLAKE_* env vars set but session unavailable - check credentials"
 
     ledger = SnowflakeLedger()
     try:
@@ -98,7 +98,7 @@ def test_real_ledger_insert_and_read_back():
     """One real ledger insert (via record() -> background flush -> INSERT)
     and read-back via a direct SELECT against NEULIT.CORE.TOKEN_LEDGER.
     """
-    assert snowflake_available(), "SNOWFLAKE_* env vars set but session unavailable — check credentials"
+    assert snowflake_available(), "SNOWFLAKE_* env vars set but session unavailable - check credentials"
 
     from backend.contracts.models import LedgerEvent, TokenUsage
     from backend.snowflake.session import get_session
@@ -151,7 +151,7 @@ def test_real_analyst_question():
     snowflake/sql/semantic_model.yaml's verified_queries block and paste
     pass/fail for each into Handoff-Log.md.
     """
-    assert snowflake_available(), "SNOWFLAKE_* env vars set but session unavailable — check credentials"
+    assert snowflake_available(), "SNOWFLAKE_* env vars set but session unavailable - check credentials"
 
     analyst = CortexAnalyst()
     result = analyst.ask(ANALYST_QUESTION)

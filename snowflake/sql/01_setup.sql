@@ -1,4 +1,4 @@
--- NeuLitTrace v2 — Card 1 (Snowflake platform)
+-- NeuLitTrace v2 - Card 1 (Snowflake platform)
 -- Run once, by hand, against the hackathon account, in numeric file order.
 
 CREATE WAREHOUSE IF NOT EXISTS NEULIT_WH

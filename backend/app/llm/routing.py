@@ -1,4 +1,4 @@
-"""Phase E — call-site model routing.
+"""Phase E - call-site model routing.
 
 Maps each CallSite to a model tier -- "cheap" for binary-gate /
 query-expansion calls that are quality-tolerant, "strong" for calls where

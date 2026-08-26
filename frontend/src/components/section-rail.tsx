@@ -1,5 +1,5 @@
 // frontend/src/components/section-rail.tsx
-// Shared "§NN — hairline — EYEBROW" motif that opens every section:
+// Shared "§NN - hairline - EYEBROW" motif that opens every section:
 // design-system/MASTER.md section 4b "Section rail".
 type Props = {
   number: string;

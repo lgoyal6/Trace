@@ -1,4 +1,4 @@
-# Snowflake DDL — run order
+# Snowflake DDL - run order
 
 Run once, by hand, against the hackathon account. Requires `SNOWFLAKE_*` env
 vars (see `.env.example` / `config/snowflake.yaml`) or an equivalent
@@ -6,12 +6,12 @@ vars (see `.env.example` / `config/snowflake.yaml`) or an equivalent
 
 ## Order
 
-1. `01_setup.sql` — warehouse, database, schema, `NEULIT_APP` role, grants (incl. `SNOWFLAKE.CORTEX_USER`).
-2. `02_tables.sql` — `PAPERS`, `CONDITIONS`, `TOKEN_LEDGER`, `MODEL_PRICING` (+ seed row for the default model).
+1. `01_setup.sql` - warehouse, database, schema, `NEULIT_APP` role, grants (incl. `SNOWFLAKE.CORTEX_USER`).
+2. `02_tables.sql` - `PAPERS`, `CONDITIONS`, `TOKEN_LEDGER`, `MODEL_PRICING` (+ seed row for the default model).
 3. Load data: `python -m backend.app.corpus.build_corpus --to-snowflake` (reads `backend/data/corpus.json`, writes `PAPERS`/`CONDITIONS`, embeds `CONDITION_VEC`).
-4. `03_search_service.sql` — Cortex Search Service over `PAPERS.SEARCH_BLOB`. Poll `SHOW CORTEX SEARCH SERVICES IN SCHEMA NEULIT.CORE;` until `ACTIVE`.
-5. `04_views.sql` — cost views read by `/economics/*` and Cortex Analyst.
-6. `semantic_model.yaml` — upload/reference for a Cortex Analyst semantic model stage (`live` profile only).
+4. `03_search_service.sql` - Cortex Search Service over `PAPERS.SEARCH_BLOB`. Poll `SHOW CORTEX SEARCH SERVICES IN SCHEMA NEULIT.CORE;` until `ACTIVE`.
+5. `04_views.sql` - cost views read by `/economics/*` and Cortex Analyst.
+6. `semantic_model.yaml` - upload/reference for a Cortex Analyst semantic model stage (`live` profile only).
 
 ## snowsql command line
 
@@ -42,5 +42,5 @@ snowsql -a "$SNOWFLAKE_ACCOUNT" -u "$SNOWFLAKE_USER" \
 - `SHOW CORTEX SEARCH SERVICES IN SCHEMA NEULIT.CORE;` → state `ACTIVE`
 
 Paste all of the above into `Handoff-Log.md` at CP1. **Not run in this
-sandbox** — no live Snowflake credentials are available here; see
+sandbox** - no live Snowflake credentials are available here; see
 `Blockers.md`.

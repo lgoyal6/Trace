@@ -5,7 +5,7 @@ LedgerEvents in a bounded queue and flushing them to NEULIT.CORE.TOKEN_LEDGER
 from a background thread, per
 plan-v2/01-PHASE-CARD-1-snowflake-platform.md section 3.6.
 
-record() must never add latency to a caller's request — it only puts onto an
+record() must never add latency to a caller's request - it only puts onto an
 in-memory queue and returns.
 """
 from __future__ import annotations
@@ -132,7 +132,7 @@ class SnowflakeLedger:
     def stop(self) -> None:
         """Test/shutdown hook: stop the background flush thread after
         flushing whatever remains, without waiting for process atexit.
-        Idempotent — safe to call more than once (e.g. once explicitly and
+        Idempotent - safe to call more than once (e.g. once explicitly and
         once again via the atexit handler at process exit).
         """
         self._atexit_flush()

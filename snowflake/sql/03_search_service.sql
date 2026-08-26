@@ -1,4 +1,4 @@
--- NeuLitTrace v2 — Card 1. Run after 02_tables.sql and after PAPERS is loaded
+-- NeuLitTrace v2 - Card 1. Run after 02_tables.sql and after PAPERS is loaded
 -- (backend/app/corpus/build_corpus.py --to-snowflake).
 USE ROLE NEULIT_APP;
 USE WAREHOUSE NEULIT_WH;
@@ -21,5 +21,5 @@ AS (
 
 -- During corpus-tuning, TARGET_LAG='1 hour' means reloading PAPERS does not
 -- immediately update the index. Either re-run this CREATE OR REPLACE, or
--- temporarily set TARGET_LAG = '1 minute' and set it back afterward — a
+-- temporarily set TARGET_LAG = '1 minute' and set it back afterward - a
 -- short lag burns credits continuously.

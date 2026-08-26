@@ -1,4 +1,4 @@
-"""Tier 1 — credential-free. CortexSearchRetriever with a mocked Snowpark
+"""Tier 1 - credential-free. CortexSearchRetriever with a mocked Snowpark
 session: exclude_pmids applied before truncation, top_k respected, rarity
 multipliers land in ScoredPaper, unavailable session returns [] not raises.
 """

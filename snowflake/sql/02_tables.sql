@@ -1,4 +1,4 @@
--- NeuLitTrace v2 — Card 1. Run after 01_setup.sql.
+-- NeuLitTrace v2 - Card 1. Run after 01_setup.sql.
 USE ROLE NEULIT_APP;
 USE WAREHOUSE NEULIT_WH;
 USE DATABASE NEULIT;

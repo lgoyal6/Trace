@@ -29,7 +29,7 @@ def compute_cost_usd(
     """cost_usd = (prompt/1e6)*credits_in*usd_per_credit
                 + (completion/1e6)*credits_out*usd_per_credit
 
-    Returns 0.0 and logs an error if `model` is missing from `pricing` —
+    Returns 0.0 and logs an error if `model` is missing from `pricing` -
     never guesses a price.
     """
     row = pricing.get(model)

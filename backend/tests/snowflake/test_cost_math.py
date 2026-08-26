@@ -1,4 +1,4 @@
-"""Tier 1 — credential-free. Pricing math against hand-computed values."""
+"""Tier 1 - credential-free. Pricing math against hand-computed values."""
 from backend.app.llm.pricing import ModelPriceRow, compute_cost_usd
 
 
