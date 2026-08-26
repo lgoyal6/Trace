@@ -4,7 +4,7 @@ into Snowflake (SNOWFLAKE.CORTEX.EMBED_TEXT_768 + VECTOR_COSINE_SIMILARITY,
 see backend/snowflake/retrieval.py:closest_conditions), which this
 credential-free suite cannot call. What stays testable without a live
 connection is the pure scoring/threshold math in
-backend/app/retrieval/condition_match.py — this file verifies that math
+backend/app/retrieval/condition_match.py - this file verifies that math
 directly, plus the demo-fixture gold case for the flagship rare condition.
 """
 import json

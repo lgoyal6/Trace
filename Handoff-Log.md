@@ -635,7 +635,7 @@ this repo or environment is shared with anyone else.
   `test_real_analyst_question` fails as expected:
   `SnowparkSQLException ... Request failed for external function
   _COMPLETE_WITH_PROMPT with remote service error: 400 '"invalid prompt
-  object"'`. This confirms the suspicion above — `analyst.py`'s
+  object"'`. This confirms the suspicion above - `analyst.py`'s
   Analyst-via-`COMPLETE` approach is not a valid call shape, not just
   unverified. `/economics/ask` still degrades cleanly (does not 500  - 
   `result["answer"]` is always truthy, just the canned "unavailable"

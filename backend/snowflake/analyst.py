@@ -8,7 +8,7 @@ Cortex Analyst is called over its REST endpoint
 (/api/v2/cortex/analyst/message), authenticated with the same session's
 token, pointed at the semantic model file at snowflake/sql/semantic_model.yaml
 staged in Snowflake. On any failure this returns a clear "unavailable"
-answer rather than raising — /economics/ask must never 500.
+answer rather than raising - /economics/ask must never 500.
 """
 from __future__ import annotations
 
@@ -43,7 +43,7 @@ class CortexAnalyst:
     def ask(self, question: str) -> dict:
         """Returns {"answer": str, "sql": str, "rows": list[dict]}.
 
-        Never raises — any failure degrades to _UNAVAILABLE.
+        Never raises - any failure degrades to _UNAVAILABLE.
         """
         if not snowflake_available():
             logger.warning("CortexAnalyst.ask: Snowflake unavailable")

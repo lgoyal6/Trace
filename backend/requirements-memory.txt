@@ -1,3 +1,3 @@
-# EverOS SDK — Card 2A pins the real package name + version here at CP1.
+# EverOS SDK - Card 2A pins the real package name + version here at CP1.
 # Left empty at freeze: an invented name here would break `pip install -r
 # backend/requirements.txt` for every lane, not just this one.

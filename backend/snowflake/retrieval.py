@@ -1,4 +1,4 @@
-"""CortexSearchRetriever — implements backend.contracts.ports.RetrievalPort
+"""CortexSearchRetriever - implements backend.contracts.ports.RetrievalPort
 against Snowflake Cortex Search Service (native hybrid lexical + vector),
 with the rarity boost applied as a post-retrieval re-rank.
 

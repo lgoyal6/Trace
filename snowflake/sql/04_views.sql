@@ -1,4 +1,4 @@
--- NeuLitTrace v2 — Card 1. Run after 02_tables.sql. Read by /economics/* and
+-- NeuLitTrace v2 - Card 1. Run after 02_tables.sql. Read by /economics/* and
 -- pointed at by Cortex Analyst's semantic model (semantic_model.yaml).
 USE ROLE NEULIT_APP;
 USE WAREHOUSE NEULIT_WH;

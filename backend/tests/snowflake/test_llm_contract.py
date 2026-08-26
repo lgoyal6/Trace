@@ -1,4 +1,4 @@
-"""Tier 1 — credential-free. Mocked COMPLETE: exactly one ledger event per
+"""Tier 1 - credential-free. Mocked COMPLETE: exactly one ledger event per
 chat() call across success / retry-then-success / total-failure paths;
 json_schema passed through; 20s timeout constant present.
 """

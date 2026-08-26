@@ -1,7 +1,7 @@
 """Lazy, thread-safe Snowpark Session factory.
 
 Every other module under backend/snowflake/ must call snowflake_available()
-before doing work, and get_session() never raises — it returns None if
+before doing work, and get_session() never raises - it returns None if
 credentials are absent so the `fake` profile and CI keep working with zero
 Snowflake in the environment.
 

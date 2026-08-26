@@ -15,7 +15,7 @@ type Sentence = {
  *
  * Markers sit inside the sentence before its terminal punctuation ("…on EEG
  * [1]."), because the sentence splitter needs the period to be sentence-final.
- * Deleting the marker naively leaves "…on EEG ." — an orphaned space before
+ * Deleting the marker naively leaves "…on EEG ." - an orphaned space before
  * the period on every claim. */
 function stripMarkers(text: string): string {
   return text
@@ -25,7 +25,7 @@ function stripMarkers(text: string): string {
     .trim();
 }
 
-/** " · Journal, Year" — but only for the parts that actually exist.
+/** " · Journal, Year" - but only for the parts that actually exist.
  *
  * Every record in the current corpus has `journal: null, year: null` (the
  * PubMed ingestion never populated them), and rendering them unconditionally
@@ -107,7 +107,7 @@ function SummaryBody({ result }: { result: QueryResult }) {
 
       <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 border-t border-rule pt-4">
         <Key tone="verified" label="Verified against source abstract" />
-        <Key tone="unsupported" label="Unsupported — shown, not hidden" />
+        <Key tone="unsupported" label="Unsupported - shown, not hidden" />
         <Key tone="pending" label="Verification pending" />
       </div>
     </div>

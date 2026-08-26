@@ -1,4 +1,4 @@
-"""Snowflake Cortex credit rates — the pricing oracle.
+"""Snowflake Cortex credit rates - the pricing oracle.
 
 Every number MemEx puts on screen is a measured token count multiplied by a
 rate from this table (published, citable). Nothing is invented and nothing is

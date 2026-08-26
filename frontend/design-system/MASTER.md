@@ -161,7 +161,7 @@ hairline) sit on one baseline far below it, with the graph filling the gap betwe
 without a container - and a mono strip runs along the bottom: `Live render · depth 5 ·
 8 primary · 0.72 decay · illustrative, not patient data`.
 
-**Section rail.** Every section opens with `§NN — hairline — EYEBROW`: a mono section number
+**Section rail.** Every section opens with `§NN - hairline - EYEBROW`: a mono section number
 in `--blue-500`, a 28 px `--blue-300` rule, then the uppercase eyebrow. The old build's
 bare eyebrow is gone; the numbering gives the page an apparatus a reader can cite back to.
 
@@ -216,10 +216,10 @@ Changed values only:
 stroke gradient   rgba(78,138,226,α) → rgba(150,190,250,α*0.62)
 stroke alpha      α = min(0.95, 0.44 + depth*0.10 + wave*0.18)   (was 0.16 + depth*0.09)
 signal wave       wave = 0.5 + 0.5*sin(t*1.15 - depth*0.9 + seed*0.4)
-                  a brightness band travelling outward through the tree — new
+                  a brightness band travelling outward through the tree - new
 line width        max(0.7, depth * 0.82), round caps   (was max(0.6, depth*0.85))
 stroke glow       shadowColor rgba(94,151,232, 0.30–0.64)
-                  shadowBlur 5 + depth*2.6 + wave*5   — the emission, new
+                  shadowBlur 5 + depth*2.6 + wave*5   - the emission, new
 terminal dot      rgba(46,106,190, 0.70–1.0), r 1.9–3.2, shadowBlur 10–22,
                   firing on its own 1.8 Hz phase   (was rgba(255,220,240,0.5), r 1.4)
 soma             r 5.5–6.7 solid + radial halo r 52–68 at 0.44–0.60, shadowBlur 18–26

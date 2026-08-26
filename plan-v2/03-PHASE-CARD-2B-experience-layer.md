@@ -35,7 +35,7 @@ You do **not** own: any API implementation, any prompt, any retrieval logic, any
 frontend/**
 docs/**
 README.md
-package.json          (root — VitePress deps only, not frontend deps)
+package.json          (root - VitePress deps only, not frontend deps)
 ```
 
 That is the entire list. Anything else is someone else's.

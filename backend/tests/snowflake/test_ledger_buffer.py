@@ -1,4 +1,4 @@
-"""Tier 1 — credential-free. Queue flush on count/time threshold, drop-oldest
+"""Tier 1 - credential-free. Queue flush on count/time threshold, drop-oldest
 on overflow, atexit flush. NEULIT_PROFILE=fake, no SNOWFLAKE_* env vars.
 """
 from __future__ import annotations

@@ -1,7 +1,7 @@
 """FROZEN filename at tag contracts-v1. Body owned by Card 1 (Snowflake platform).
 
 CortexLLMClient implements backend.contracts.ports.LLMPort against
-SNOWFLAKE.CORTEX.COMPLETE. Single provider, no fallback — see
+SNOWFLAKE.CORTEX.COMPLETE. Single provider, no fallback - see
 plan-v2/01-PHASE-CARD-1-snowflake-platform.md section 3.5 and
 plan-v2/00-SHARED-CONTRACTS.md section 2.2.
 """
@@ -40,7 +40,7 @@ class CortexLLMClient:
     """Single-provider LLM client: SNOWFLAKE.CORTEX.COMPLETE only.
 
     Every chat() call writes exactly one LedgerEvent, via the injected
-    ledger, in a finally block — across success, retry-then-success, and
+    ledger, in a finally block - across success, retry-then-success, and
     total-failure/degraded paths.
     """
 

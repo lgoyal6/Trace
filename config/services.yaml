@@ -10,13 +10,13 @@ live:      # everything real
   memory:    backend.memory.evermind.EverOSMemory
   ledger:    backend.snowflake.ledger.SnowflakeLedger
 
-live_no_memory:   # Card 1's integration profile — no EverOS credentials needed
+live_no_memory:   # Card 1's integration profile - no EverOS credentials needed
   retrieval: backend.snowflake.retrieval.CortexSearchRetriever
   llm:       backend.snowflake.llm.CortexLLMClient
   memory:    backend.contracts.fakes.FakeMemory
   ledger:    backend.snowflake.ledger.SnowflakeLedger
 
-live_no_snowflake: # Card 2A's integration profile — no Snowflake credentials needed
+live_no_snowflake: # Card 2A's integration profile - no Snowflake credentials needed
   retrieval: backend.contracts.fakes.FakeRetrieval
   llm:       backend.contracts.fakes.FakeLLM
   memory:    backend.memory.evermind.EverOSMemory

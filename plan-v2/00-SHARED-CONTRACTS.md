@@ -62,7 +62,7 @@ docs/public/diagrams/paritok-impact.svg
 docs/public/diagrams/paritok-usage.d2
 docs/public/diagrams/paritok-usage.svg
 backend/tests/test_compression.py
-backend/tests/test_candidate_a_loop.py        # Paritok A/B gate — the comparison no longer exists
+backend/tests/test_candidate_a_loop.py        # Paritok A/B gate - the comparison no longer exists
 backend/tests/test_candidate_b_summary.py     # ditto
 backend/app/llm_client.py                     # replaced by backend/app/llm/ (Card 1)
 backend/app/retrieval/bm25_index.py
@@ -287,13 +287,13 @@ live:      # everything real
   memory:    backend.memory.evermind.EverOSMemory
   ledger:    backend.snowflake.ledger.SnowflakeLedger
 
-live_no_memory:   # Card 1's integration profile — no EverOS credentials needed
+live_no_memory:   # Card 1's integration profile - no EverOS credentials needed
   retrieval: backend.snowflake.retrieval.CortexSearchRetriever
   llm:       backend.snowflake.llm.CortexLLMClient
   memory:    backend.contracts.fakes.FakeMemory
   ledger:    backend.snowflake.ledger.SnowflakeLedger
 
-live_no_snowflake: # Card 2A's integration profile — no Snowflake credentials needed
+live_no_snowflake: # Card 2A's integration profile - no Snowflake credentials needed
   retrieval: backend.contracts.fakes.FakeRetrieval
   llm:       backend.contracts.fakes.FakeLLM
   memory:    backend.memory.evermind.EverOSMemory

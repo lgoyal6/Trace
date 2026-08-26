@@ -1,7 +1,7 @@
 """Reassigned to Card 1 at contracts-v1. v1's ParitokLLMClient (Groq + Gemini
 failover, backend/app/llm_client.py) is deleted. v2 is a single-provider
 CortexLLMClient (backend/snowflake/llm.py) against SNOWFLAKE.CORTEX.COMPLETE
-— no fallback provider, by design (plan-v2/01-PHASE-CARD-1-snowflake-platform.md
+- no fallback provider, by design (plan-v2/01-PHASE-CARD-1-snowflake-platform.md
 section 3.5, "Do not add a Groq fallback back in 'just in case'").
 
 Kept as this filename per plan-v2/00-SHARED-CONTRACTS.md's "keep filenames"
@@ -33,7 +33,7 @@ def test_model_reads_env_override(monkeypatch):
 
 
 def test_no_fallback_provider_attribute_exists():
-    """CortexLLMClient has no secondary/fallback client — a single provider
+    """CortexLLMClient has no secondary/fallback client - a single provider
     is what makes the ledger's cost numbers trustworthy."""
     client = CortexLLMClient()
     assert not hasattr(client, "_gemini_client")

@@ -3,11 +3,11 @@
 Two responsibilities, kept in one module because they share the same
 Condition list and JSON shape:
 
-1. `build_corpus()` — the original one-time PubMed fetch (Step 2.5), unchanged
+1. `build_corpus()` - the original one-time PubMed fetch (Step 2.5), unchanged
    in behavior. `python -m backend.app.corpus.build_corpus` still fetches from
    PubMed and writes backend/data/corpus.json.
 
-2. `load_to_snowflake()` — the v2 migration target. `python -m
+2. `load_to_snowflake()` - the v2 migration target. `python -m
    backend.app.corpus.build_corpus --to-snowflake` reads the existing
    backend/data/corpus.json (329 papers, 14 conditions; the JSON stays
    in-repo as migration source + fake fixture, per
@@ -71,7 +71,7 @@ def load_to_snowflake(corpus_path: Path = DEFAULT_OUT_PATH) -> dict:
 
     Returns a summary dict {"papers": n, "conditions": n, "rare_conditions": n}.
     Degrades to a RuntimeError with a clear message if Snowflake is
-    unavailable — this is an operator-run migration script, not a
+    unavailable - this is an operator-run migration script, not a
     request-path call, so raising (rather than silently no-op'ing) is
     correct here.
     """
@@ -119,7 +119,7 @@ def load_to_snowflake(corpus_path: Path = DEFAULT_OUT_PATH) -> dict:
                 f"VALUES {chunk}"
             ).collect()
 
-    # SELECT ... UNION ALL ..., not VALUES (...) — Snowflake's VALUES clause
+    # SELECT ... UNION ALL ..., not VALUES (...) - Snowflake's VALUES clause
     # rejects function calls like ARRAY_CONSTRUCT inside literal row tuples.
     condition_rows = []
     for name, rows in by_condition.items():
