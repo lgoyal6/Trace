@@ -7,3 +7,6 @@ __pycache__/
 node_modules/
 .venv/
 test-results/
+
+# graphify knowledge graph (local index, not source)
+graphify-out/
