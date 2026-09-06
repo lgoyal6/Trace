@@ -1,0 +1,195 @@
+{
+  "split": {
+    "dev_records": 157,
+    "test_records": 172,
+    "dev_documents": 147,
+    "test_documents": 165,
+    "shared_documents": 0,
+    "split_label": "c25-v1"
+  },
+  "method": {
+    "test_set": "28 fixed gold queries from run_gate.GOLD_SET",
+    "relevance": "a paper is relevant to a query if its condition is the query's gold condition",
+    "split_unit": "PMID, not record - 17 PMIDs appear in more than one record",
+    "retrieval_stage": "varies query formulation only; recall is order-free",
+    "ordering_stage": "same candidate pool for every ordering; nDCG/MRR/P@5",
+    "hyde": "BLOCKED live. 'prf' is a local stand-in; 'fakellm' is inert by construction",
+    "cost": "token counts are real; USD uses FakeLLM's $0.000002/token and is not money",
+    "latency": "in-process only, no network. A floor, not a production p95"
+  },
+  "dev": {
+    "fold": "dev",
+    "documents": 147,
+    "records": 157,
+    "queries_scored": 28,
+    "queries_dropped_no_relevant_document_in_fold": 0,
+    "retrieval_stage": {
+      "none": {
+        "queries": 28,
+        "recall_at_30": 0.79,
+        "recall_at_10": 0.5842,
+        "rare_recall_at_30": 0.8284,
+        "zero_hit_queries": 1,
+        "median_latency_ms": 2.831,
+        "p95_latency_ms": 3.596
+      },
+      "prf": {
+        "queries": 28,
+        "recall_at_30": 0.7841,
+        "recall_at_10": 0.5758,
+        "rare_recall_at_30": 0.8203,
+        "zero_hit_queries": 1,
+        "median_latency_ms": 9.536,
+        "p95_latency_ms": 11.117
+      },
+      "fakellm": {
+        "queries": 28,
+        "recall_at_30": 0.73,
+        "recall_at_10": 0.5611,
+        "rare_recall_at_30": 0.7779,
+        "zero_hit_queries": 1,
+        "median_latency_ms": 2.982,
+        "p95_latency_ms": 4.219
+      }
+    },
+    "ordering_stage": {
+      "lexical": {
+        "candidate_pool": "expansion=none, identical across orderings",
+        "ndcg_at_10": 0.7818,
+        "ndcg_at_10_rare_queries": 0.7946,
+        "ndcg_at_10_common_queries": 0.7496,
+        "mrr_at_10": 0.881,
+        "precision_at_5": 0.7143,
+        "median_latency_ms": 0.0,
+        "p95_latency_ms": 0.001
+      },
+      "rarity": {
+        "candidate_pool": "expansion=none, identical across orderings",
+        "ndcg_at_10": 0.6964,
+        "ndcg_at_10_rare_queries": 0.8145,
+        "ndcg_at_10_common_queries": 0.4011,
+        "mrr_at_10": 0.7512,
+        "precision_at_5": 0.6071,
+        "median_latency_ms": 0.047,
+        "p95_latency_ms": 0.126
+      },
+      "rarity+memory": {
+        "candidate_pool": "expansion=none, identical across orderings",
+        "ndcg_at_10": 0.6885,
+        "ndcg_at_10_rare_queries": 0.8035,
+        "ndcg_at_10_common_queries": 0.4011,
+        "mrr_at_10": 0.7333,
+        "precision_at_5": 0.6,
+        "median_latency_ms": 0.077,
+        "p95_latency_ms": 0.212
+      }
+    }
+  },
+  "test": {
+    "fold": "test",
+    "documents": 165,
+    "records": 172,
+    "queries_scored": 28,
+    "queries_dropped_no_relevant_document_in_fold": 0,
+    "retrieval_stage": {
+      "none": {
+        "queries": 28,
+        "recall_at_30": 0.7722,
+        "recall_at_10": 0.5147,
+        "rare_recall_at_30": 0.8297,
+        "zero_hit_queries": 1,
+        "median_latency_ms": 3.48,
+        "p95_latency_ms": 4.545
+      },
+      "prf": {
+        "queries": 28,
+        "recall_at_30": 0.7722,
+        "recall_at_10": 0.5147,
+        "rare_recall_at_30": 0.8297,
+        "zero_hit_queries": 1,
+        "median_latency_ms": 11.721,
+        "p95_latency_ms": 17.52
+      },
+      "fakellm": {
+        "queries": 28,
+        "recall_at_30": 0.7035,
+        "recall_at_10": 0.4804,
+        "rare_recall_at_30": 0.776,
+        "zero_hit_queries": 1,
+        "median_latency_ms": 3.344,
+        "p95_latency_ms": 3.866
+      }
+    },
+    "ordering_stage": {
+      "lexical": {
+        "candidate_pool": "expansion=none, identical across orderings",
+        "ndcg_at_10": 0.7405,
+        "ndcg_at_10_rare_queries": 0.7045,
+        "ndcg_at_10_common_queries": 0.8307,
+        "mrr_at_10": 0.8611,
+        "precision_at_5": 0.6643,
+        "median_latency_ms": 0.0,
+        "p95_latency_ms": 0.001
+      },
+      "rarity": {
+        "candidate_pool": "expansion=none, identical across orderings",
+        "ndcg_at_10": 0.6704,
+        "ndcg_at_10_rare_queries": 0.7658,
+        "ndcg_at_10_common_queries": 0.4319,
+        "mrr_at_10": 0.768,
+        "precision_at_5": 0.5857,
+        "median_latency_ms": 0.04,
+        "p95_latency_ms": 0.058
+      },
+      "rarity+memory": {
+        "candidate_pool": "expansion=none, identical across orderings",
+        "ndcg_at_10": 0.6473,
+        "ndcg_at_10_rare_queries": 0.7334,
+        "ndcg_at_10_common_queries": 0.4319,
+        "mrr_at_10": 0.7442,
+        "precision_at_5": 0.5571,
+        "median_latency_ms": 0.077,
+        "p95_latency_ms": 0.097
+      }
+    }
+  },
+  "end_to_end": {
+    "note": "un-split: run_query resolves its own services and retrieves over the full corpus. Used for cost, latency and citation plumbing only.",
+    "queries": 28,
+    "median_latency_ms": 8.36,
+    "p95_latency_ms": 9.66,
+    "median_total_tokens": 3520.5,
+    "total_cost_usd_fake_prices": 0.193986,
+    "citation_support": {
+      "claims": 110,
+      "supported": 110,
+      "unsupported": 0,
+      "unresolvable": 0,
+      "support_rate": 1.0
+    },
+    "citation_support_shuffled_control": {
+      "claims": 110,
+      "supported": 14,
+      "unsupported": 96,
+      "unresolvable": 0,
+      "support_rate": 0.1273
+    }
+  },
+  "comparison": {
+    "held_out_fold": "test",
+    "baseline": "expansion=none, ordering=lexical, zero LLM calls",
+    "retrieval_delta_recall_at_30_prf_minus_none": 0.0,
+    "ordering_delta_ndcg_at_10_rarity_minus_lexical": -0.0701,
+    "ordering_delta_ndcg_at_10_rarity_minus_lexical_rare_queries_only": 0.0613,
+    "ordering_delta_ndcg_at_10_memory_minus_rarity": -0.0231,
+    "retrieval_delta_recall_at_30_fakellm_minus_none": -0.0687,
+    "verdicts": {
+      "expansion_beats_raw_query": false,
+      "rarity_rerank_beats_lexical_order": false,
+      "rarity_rerank_beats_lexical_order_on_rare_queries": true,
+      "memory_rerank_beats_rarity_alone": false,
+      "fakellm_hyde_changes_anything": true
+    },
+    "dev_agrees_with_test_on_expansion": true
+  }
+}
