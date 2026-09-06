@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Request
 
+from backend.api.contract_errors import UNPARSEABLE_BODY
 from backend.api.dependencies import get_services_dep
 from backend.api.limiter import limiter
 from backend.api.schemas import ForgetRequest, ProfileOut, SpecialtyRequest, ThreadOut
@@ -27,7 +28,7 @@ def memory_profile(
     )
 
 
-@router.post("/specialty", status_code=204)
+@router.post("/specialty", status_code=204, responses=UNPARSEABLE_BODY)
 @limiter.limit("30/minute")
 def memory_specialty(
     request: Request, body: SpecialtyRequest, services: Services = Depends(get_services_dep)
@@ -35,7 +36,7 @@ def memory_specialty(
     services.memory.set_specialty(body.user_id, body.specialty)
 
 
-@router.post("/forget", status_code=204)
+@router.post("/forget", status_code=204, responses=UNPARSEABLE_BODY)
 @limiter.limit("5/minute")
 def memory_forget(
     request: Request, body: ForgetRequest, services: Services = Depends(get_services_dep)

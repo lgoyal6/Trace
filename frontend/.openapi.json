@@ -30,6 +30,27 @@
               }
             }
           },
+          "400": {
+            "description": "the request body could not be decoded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "detail": {
+                      "type": "string",
+                      "title": "Detail"
+                    }
+                  },
+                  "type": "object",
+                  "required": [
+                    "detail"
+                  ],
+                  "title": "ParseErrorResponse",
+                  "description": "Starlette's own shape for an undecodable body, written down."
+                }
+              }
+            }
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -60,10 +81,94 @@
         },
         "responses": {
           "200": {
-            "description": "Successful Response",
+            "description": "server-sent `stage` events followed by one `done` event",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "string"
+                },
+                "itemSchema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "string",
+                      "contentMediaType": "application/json",
+                      "contentSchema": {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "const": "stage"
+                              },
+                              "stage": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "type",
+                              "stage"
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "const": "done"
+                              },
+                              "result": {
+                                "$ref": "#/components/schemas/QueryResponse"
+                              }
+                            },
+                            "required": [
+                              "type",
+                              "result"
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "const": "error"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "type",
+                              "message"
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "the request body could not be decoded",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "properties": {
+                    "detail": {
+                      "type": "string",
+                      "title": "Detail"
+                    }
+                  },
+                  "type": "object",
+                  "required": [
+                    "detail"
+                  ],
+                  "title": "ParseErrorResponse",
+                  "description": "Starlette's own shape for an undecodable body, written down."
+                }
               }
             }
           },
@@ -128,8 +233,10 @@
           "200": {
             "description": "Successful Response",
             "content": {
-              "application/json": {
-                "schema": {}
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
               }
             }
           }
@@ -156,8 +263,10 @@
           "200": {
             "description": "Successful Response",
             "content": {
-              "application/json": {
-                "schema": {}
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
               }
             }
           },
@@ -193,8 +302,10 @@
           "200": {
             "description": "Successful Response",
             "content": {
-              "application/json": {
-                "schema": {}
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
               }
             }
           },
@@ -315,6 +426,27 @@
               }
             }
           },
+          "400": {
+            "description": "the request body could not be decoded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "detail": {
+                      "type": "string",
+                      "title": "Detail"
+                    }
+                  },
+                  "type": "object",
+                  "required": [
+                    "detail"
+                  ],
+                  "title": "ParseErrorResponse",
+                  "description": "Starlette's own shape for an undecodable body, written down."
+                }
+              }
+            }
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -385,6 +517,27 @@
           "204": {
             "description": "Successful Response"
           },
+          "400": {
+            "description": "the request body could not be decoded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "detail": {
+                      "type": "string",
+                      "title": "Detail"
+                    }
+                  },
+                  "type": "object",
+                  "required": [
+                    "detail"
+                  ],
+                  "title": "ParseErrorResponse",
+                  "description": "Starlette's own shape for an undecodable body, written down."
+                }
+              }
+            }
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -415,6 +568,27 @@
         "responses": {
           "204": {
             "description": "Successful Response"
+          },
+          "400": {
+            "description": "the request body could not be decoded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "detail": {
+                      "type": "string",
+                      "title": "Detail"
+                    }
+                  },
+                  "type": "object",
+                  "required": [
+                    "detail"
+                  ],
+                  "title": "ParseErrorResponse",
+                  "description": "Starlette's own shape for an undecodable body, written down."
+                }
+              }
+            }
           },
           "422": {
             "description": "Validation Error",
@@ -508,6 +682,27 @@
               }
             }
           },
+          "400": {
+            "description": "the request body could not be decoded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "detail": {
+                      "type": "string",
+                      "title": "Detail"
+                    }
+                  },
+                  "type": "object",
+                  "required": [
+                    "detail"
+                  ],
+                  "title": "ParseErrorResponse",
+                  "description": "Starlette's own shape for an undecodable body, written down."
+                }
+              }
+            }
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -596,6 +791,27 @@
                   "additionalProperties": true,
                   "type": "object",
                   "title": "Response Shock Memex Shock Post"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "the request body could not be decoded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "detail": {
+                      "type": "string",
+                      "title": "Detail"
+                    }
+                  },
+                  "type": "object",
+                  "required": [
+                    "detail"
+                  ],
+                  "title": "ParseErrorResponse",
+                  "description": "Starlette's own shape for an undecodable body, written down."
                 }
               }
             }
@@ -1456,7 +1672,11 @@
           "policy": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "enum": [
+                  "tight",
+                  "generous"
+                ]
               },
               {
                 "type": "null"

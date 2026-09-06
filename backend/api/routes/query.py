@@ -9,6 +9,8 @@ import uuid
 from fastapi import APIRouter, Request
 from fastapi.responses import StreamingResponse
 
+from backend.api.contract_errors import UNPARSEABLE_BODY
+
 from backend.api.limiter import limiter
 from backend.api.schemas import (
     BrainRegionOut,
@@ -161,7 +163,8 @@ def _request_scoped_ids(request: Request) -> tuple[str, str, str]:
     return request_id, session_id, user_id
 
 
-@router.post("/query", response_model=QueryResponse)
+@router.post("/query", response_model=QueryResponse,
+             responses=UNPARSEABLE_BODY)
 @limiter.limit("10/minute")
 def query(request: Request, payload: QueryRequest) -> QueryResponse:
     result = run_query(
@@ -171,7 +174,71 @@ def query(request: Request, payload: QueryRequest) -> QueryResponse:
     return _to_response(result)
 
 
-@router.post("/query/stream")
+class ServerSentEventResponse(StreamingResponse):
+    """`StreamingResponse` with the media type declared on the class.
+
+    FastAPI reads the documented 200 content type off `response_class.media_type`, and
+    `StreamingResponse` leaves it None, so the route fell back to `application/json`
+    while every response it sent was `text/event-stream`. Passing the content type
+    through `responses=` instead does not help: FastAPI merges that with the default
+    JSON entry, and the document then claims both. Setting it on the class is what
+    makes the declared type and the sent type the same one thing.
+    """
+
+    media_type = "text/event-stream"
+
+
+# The frames this route emits, written down. Declaring `text/event-stream` without
+# this left FastAPI's default `{"type": "string"}` in the document, which says nothing
+# a client can use: Schemathesis parses the stream and reported every event as
+# violating it. `itemSchema` is the per-event schema, and `contentSchema` describes the
+# JSON inside each `data:` field, so the union below is checked frame by frame rather
+# than the whole body being called a string. `done` carries the same QueryResponse the
+# non-streaming route returns, by alias, so it is a $ref rather than a second copy.
+_STAGE_EVENT = {
+    "type": "object",
+    "properties": {
+        "type": {"const": "stage"},
+        "stage": {"type": "string"},
+    },
+    "required": ["type", "stage"],
+}
+_DONE_EVENT = {
+    "type": "object",
+    "properties": {
+        "type": {"const": "done"},
+        "result": {"$ref": "#/components/schemas/QueryResponse"},
+    },
+    "required": ["type", "result"],
+}
+_ERROR_EVENT = {
+    "type": "object",
+    "properties": {
+        "type": {"const": "error"},
+        "message": {"type": "string"},
+    },
+    "required": ["type", "message"],
+}
+SSE_ITEM_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "data": {
+            "type": "string",
+            "contentMediaType": "application/json",
+            "contentSchema": {"anyOf": [_STAGE_EVENT, _DONE_EVENT, _ERROR_EVENT]},
+        },
+    },
+    "required": ["data"],
+}
+
+
+@router.post("/query/stream", response_class=ServerSentEventResponse, responses={
+    200: {
+        "description": "server-sent `stage` events followed by one `done` event",
+        "content": {"text/event-stream": {"itemSchema": SSE_ITEM_SCHEMA}},
+    },
+    **UNPARSEABLE_BODY,
+})
 @limiter.limit("10/minute")
 def query_stream(request: Request, payload: QueryRequest) -> StreamingResponse:
     """Runs the same pipeline as POST /query but over SSE, emitting `stage`

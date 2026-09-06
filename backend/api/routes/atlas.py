@@ -9,6 +9,7 @@ from urllib.parse import unquote
 import nibabel
 import numpy as np
 from fastapi import APIRouter, Request, Response
+from fastapi.responses import HTMLResponse
 from matplotlib.colors import ListedColormap
 from nilearn.datasets import fetch_atlas_harvard_oxford
 from nilearn.image import load_img
@@ -168,7 +169,13 @@ _atlas_html_cache: dict[str | None, str] = {}
 _query_atlas_html_cache: dict[tuple[str, ...], str] = {}
 
 
-@router.get("/atlas")
+# Declared, not merely returned. Every branch of this route answers
+# `text/html`, and without `response_class` FastAPI documents an
+# `application/json` response: openapi-typescript then generates a client that
+# parses HTML as JSON. Schemathesis reported it as an undocumented content type
+# on all three atlas routes; backend/tests/test_api_contract.py had recorded the
+# same gap in prose and left it open.
+@router.get("/atlas", response_class=HTMLResponse)
 @limiter.limit("20/minute")
 def get_default_atlas(request: Request) -> Response:
     if None in _atlas_html_cache:
@@ -235,7 +242,7 @@ def get_default_atlas(request: Request) -> Response:
         )
 
 
-@router.get("/atlas/query")
+@router.get("/atlas/query", response_class=HTMLResponse)
 @limiter.limit("20/minute")
 def get_query_atlas(request: Request, conditions: str = "") -> Response:
     try:
@@ -324,7 +331,7 @@ def get_query_atlas(request: Request, conditions: str = "") -> Response:
         )
 
 
-@router.get("/atlas/{condition_name}")
+@router.get("/atlas/{condition_name}", response_class=HTMLResponse)
 @limiter.limit("20/minute")
 def get_atlas(request: Request, condition_name: str) -> Response:
     try:

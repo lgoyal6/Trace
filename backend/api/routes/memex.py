@@ -26,8 +26,9 @@ from __future__ import annotations
 from typing import Any
 
 from fastapi import APIRouter
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, StrictBool
 
+from backend.api.contract_errors import UNPARSEABLE_BODY
 from backend.memex import pricing
 from backend.memex.engine import ask
 from backend.memex.market import get_market
@@ -40,9 +41,12 @@ class MemexQueryRequest(BaseModel):
     query: str = Field(min_length=1, max_length=500)
     session_id: str = "demo-session"
     user_id: str = "demo-researcher"
-    personalize: bool = True
+    # StrictBool for the same reason as QueryRequest.personalize: plain `bool` accepts
+    # `0` and `1`, so `{"settle": 0}` booked no trade while the contract declared a
+    # boolean and the service answered 200. See backend/api/schemas.py.
+    personalize: StrictBool = True
     #: Book a trade for this question. False lets the UI price without settling.
-    settle: bool = True
+    settle: StrictBool = True
 
 
 class ShockRequest(BaseModel):
@@ -147,7 +151,7 @@ def _to_response(result: Any, trade: Any | None) -> dict:
     return payload
 
 
-@router.post("/query")
+@router.post("/query", responses=UNPARSEABLE_BODY)
 def memex_query(payload: MemexQueryRequest) -> dict:
     """One question, both paths, priced. Optionally books the trade."""
     result = ask(
@@ -173,7 +177,7 @@ def market_reset() -> dict:
     return {"reset": True, **get_market().book()}
 
 
-@router.post("/shock")
+@router.post("/shock", responses=UNPARSEABLE_BODY)
 def shock(payload: ShockRequest) -> dict:
     """Destroy the memory, re-price the same question, return the spike.
 

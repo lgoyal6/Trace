@@ -731,7 +731,7 @@ export interface components {
              */
             personalize: boolean;
             /** Policy */
-            policy?: string | null;
+            policy?: ("tight" | "generous") | null;
         };
         /** QueryResponse */
         QueryResponse: {
@@ -895,6 +895,18 @@ export interface operations {
                     "application/json": components["schemas"]["QueryResponse"];
                 };
             };
+            /** @description the request body could not be decoded */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Detail */
+                        detail: string;
+                    };
+                };
+            };
             /** @description Validation Error */
             422: {
                 headers: {
@@ -919,13 +931,25 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Successful Response */
+            /** @description server-sent `stage` events followed by one `done` event */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "text/event-stream": string;
+                };
+            };
+            /** @description the request body could not be decoded */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Detail */
+                        detail: string;
+                    };
                 };
             };
             /** @description Validation Error */
@@ -994,7 +1018,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "text/html": string;
                 };
             };
         };
@@ -1016,7 +1040,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "text/html": string;
                 };
             };
             /** @description Validation Error */
@@ -1047,7 +1071,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "text/html": string;
                 };
             };
             /** @description Validation Error */
@@ -1145,6 +1169,18 @@ export interface operations {
                     "application/json": components["schemas"]["EconomicsAskOut"];
                 };
             };
+            /** @description the request body could not be decoded */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Detail */
+                        detail: string;
+                    };
+                };
+            };
             /** @description Validation Error */
             422: {
                 headers: {
@@ -1207,6 +1243,18 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description the request body could not be decoded */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Detail */
+                        detail: string;
+                    };
+                };
+            };
             /** @description Validation Error */
             422: {
                 headers: {
@@ -1237,6 +1285,18 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description the request body could not be decoded */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Detail */
+                        detail: string;
+                    };
+                };
             };
             /** @description Validation Error */
             422: {
@@ -1302,6 +1362,18 @@ export interface operations {
                 content: {
                     "application/json": {
                         [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description the request body could not be decoded */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Detail */
+                        detail: string;
                     };
                 };
             };
@@ -1381,6 +1453,18 @@ export interface operations {
                 content: {
                     "application/json": {
                         [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description the request body could not be decoded */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Detail */
+                        detail: string;
                     };
                 };
             };
