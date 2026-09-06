@@ -45,13 +45,15 @@ jobs:
         run: npm ci
 
       # After install, so the scan sees the resolved node_modules tree and not
-      # just the ranges in package.json.
+      # just the ranges in package.json. output-file carries the directory
+      # prefix because an action's paths resolve from the workspace root, not
+      # from the job's working-directory.
       - name: sbom
         uses: anchore/sbom-action@3ad7283483fc7af8ff2b4ea19663c2d5ca935e26 # v0.24.2
         with:
           path: frontend
           format: spdx-json
-          output-file: trace-frontend.spdx.json
+          output-file: frontend/trace-frontend.spdx.json
           syft-version: v1.51.1
           upload-artifact: false
           upload-release-assets: false
