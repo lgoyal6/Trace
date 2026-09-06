@@ -14,12 +14,15 @@ from backend.api.schemas import (
     BrainRegionOut,
     CallSiteCostOut,
     CitationOut,
+    ClaimVerdictOut,
     CostOut,
+    GroundingOut,
     MemoryOut,
     PaperOut,
     PolicyOut,
     QueryRequest,
     QueryResponse,
+    RecordProvenanceOut,
     ScoredPaperOut,
     TraceRoundOut,
 )
@@ -35,7 +38,14 @@ def _to_response(result: QueryResult) -> QueryResponse:
         request_id=result.request_id,
         summary_markdown=result.summary_markdown,
         citations=[
-            CitationOut(index=c.index, pmid=c.pmid, supported=c.supported, note=c.note)
+            CitationOut(
+                index=c.index,
+                pmid=c.pmid,
+                supported=c.supported,
+                note=c.note,
+                source=c.source,
+                retrieval_rank=c.retrieval_rank,
+            )
             for c in result.citations
         ],
         papers=[
@@ -94,6 +104,35 @@ def _to_response(result: QueryResult) -> QueryResponse:
             },
         ),
         policy=_policy_out(result),
+        grounding=_grounding_out(result),
+        retrieval_provenance=[
+            RecordProvenanceOut(
+                pmid=r.pmid, source=r.source, retrieval_rank=r.retrieval_rank, score=r.score
+            )
+            for r in result.retrieval_provenance
+        ],
+        abstained=result.abstained,
+    )
+
+
+def _grounding_out(result: QueryResult) -> GroundingOut | None:
+    g = result.grounding
+    if g is None:
+        return None
+    return GroundingOut(
+        **g.as_dict(),
+        claims=[
+            ClaimVerdictOut(
+                position=c.position,
+                text=c.text,
+                cited_indices=list(c.cited_indices),
+                cited_pmids=list(c.cited_pmids),
+                verdict=c.verdict,
+                best_overlap=c.best_overlap,
+                numeric_conflict=c.numeric_conflict,
+            )
+            for c in g.claims
+        ],
     )
 
 

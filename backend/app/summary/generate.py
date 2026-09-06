@@ -6,8 +6,10 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
+from typing import Sequence
 
 from backend.app.llm.json_repair import try_parse_json
+from backend.app.verify.grounding import RecordProvenance
 from backend.contracts.models import Message, ScoredPaper
 from backend.contracts.ports import LLMPort
 
@@ -31,10 +33,23 @@ SUMMARY_SYSTEM_PROMPT = (
 
 @dataclass
 class SourcedCitation:
+    """`index` is the [N] slot in the prompt. `retrieval_rank` and `source`
+    are the provenance: which position in the retrieved ordering the record
+    held, and which backend served it.
+
+    Kept as separate fields rather than inferred from `index` because `index`
+    is assigned while numbering abstracts for one prompt. Anything that
+    reorders, filters or truncates between retrieval and that numbering
+    changes it, and a rank you can only recover by trusting a prompt string is
+    not something a stored answer can be audited against later.
+    """
+
     index: int
     pmid: str
     supported: bool | None = None
     note: str | None = None
+    source: str = ""
+    retrieval_rank: int = 0
 
 
 @dataclass
@@ -61,13 +76,38 @@ def _build_messages(query: str, papers: list[ScoredPaper], distilled_context: st
     return messages
 
 
-def _extract_citations(markdown: str, papers: list[ScoredPaper]) -> list[SourcedCitation]:
+def _extract_citations(
+    markdown: str,
+    papers: list[ScoredPaper],
+    *,
+    provenance: Sequence[RecordProvenance] = (),
+) -> list[SourcedCitation]:
+    """Only enumerates the markers that are PRESENT.
+
+    A sentence carrying no [N] produces nothing here and is invisible to
+    `check_citations`, which is why `backend/app/verify/grounding.py` walks the
+    summary text itself rather than this list.
+
+    `source` and `retrieval_rank` are looked up BY PMID out of the retrieval
+    provenance, not derived from `index`. The two agree today; deriving the
+    rank from the marker would make them agree by construction and the field
+    would then prove nothing about retrieval.
+    """
+    by_pmid = {p.pmid: p for p in provenance}
     indices = sorted({int(n) for n in re.findall(r"\[(\d+)\]", markdown)})
-    return [
-        SourcedCitation(index=i, pmid=papers[i - 1].paper.pmid)
-        for i in indices
-        if 1 <= i <= len(papers)
-    ]
+    out: list[SourcedCitation] = []
+    for i in indices:
+        if not 1 <= i <= len(papers):
+            continue
+        pmid = papers[i - 1].paper.pmid
+        record = by_pmid.get(pmid)
+        out.append(SourcedCitation(
+            index=i,
+            pmid=pmid,
+            source=record.source if record else "",
+            retrieval_rank=record.retrieval_rank if record else 0,
+        ))
+    return out
 
 
 def generate_sourced_summary(
@@ -76,6 +116,7 @@ def generate_sourced_summary(
     papers: list[ScoredPaper],
     *,
     distilled_context: str = "",
+    provenance: Sequence[RecordProvenance] = (),
     request_id: str,
     session_id: str,
     user_id: str,
@@ -105,4 +146,8 @@ def generate_sourced_summary(
     except (KeyError, ValueError, TypeError):
         return SourcedSummary(markdown="", citations=[], degraded=True)
 
-    return SourcedSummary(markdown=markdown, citations=_extract_citations(markdown, papers), degraded=False)
+    return SourcedSummary(
+        markdown=markdown,
+        citations=_extract_citations(markdown, papers, provenance=provenance),
+        degraded=False,
+    )

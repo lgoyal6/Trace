@@ -28,6 +28,10 @@ def test_query_endpoint_returns_the_v2_contract_shape(monkeypatch):
         # Additive, optional, null unless the request asks for a retrieval
         # policy -- see Decisions.md, "POST /query gains an optional policy".
         "policy",
+        # Additive grounding block: per-claim verdicts, the rank-annotated
+        # provenance of the record set the answer was built from, and whether
+        # the answer abstained because nothing retrieved supported it.
+        "grounding", "retrieval_provenance", "abstained",
     }
     assert body["policy"] is None, "policy must stay null when unrequested"
     assert body["request_id"]

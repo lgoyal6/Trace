@@ -64,10 +64,57 @@ class TraceRoundOut(BaseModel):
 
 
 class CitationOut(BaseModel):
+    """`index` is the [N] slot in the prompt the summary was written against.
+    `retrieval_rank` and `source` are the retrieval provenance: the position
+    the record held in the ordering the answer was built from, and the backend
+    that served it. Both are carried through rather than re-derived, so a
+    stored answer can still name its sources after the prompt is gone.
+    """
+
     index: int
     pmid: str
     supported: bool | None
     note: str | None
+    source: str = ""
+    retrieval_rank: int = 0
+
+
+class RecordProvenanceOut(BaseModel):
+    pmid: str
+    source: str
+    retrieval_rank: int
+    score: float
+
+
+class ClaimVerdictOut(BaseModel):
+    position: int
+    text: str
+    cited_indices: list[int]
+    cited_pmids: list[str]
+    verdict: str        # grounded | unsupported | uncited | dangling
+    best_overlap: float
+    numeric_conflict: bool
+
+
+class GroundingOut(BaseModel):
+    """Per-claim grounding for this answer.
+
+    `uncited` counts assertions that carry no [N] at all -- the ones the
+    citation list structurally cannot contain, because it is built by
+    enumerating the markers that are present.
+    """
+
+    total_claims: int
+    grounded: int
+    unsupported: int
+    uncited: int
+    dangling: int
+    skipped_fragments: int
+    records_available: int
+    grounded_rate: float
+    answerable: bool
+    threshold: float
+    claims: list[ClaimVerdictOut]
 
 
 class BrainRegionOut(BaseModel):
@@ -118,6 +165,11 @@ class QueryResponse(BaseModel):
     memory: MemoryOut
     cost: CostOut
     policy: PolicyOut | None = None
+    grounding: GroundingOut | None = None
+    retrieval_provenance: list[RecordProvenanceOut] = []
+    #: True when nothing retrieved supported an answer, so `summary_markdown`
+    #: is the fixed abstention line instead of a summary.
+    abstained: bool = False
 
 
 class ContrastPaperOut(BaseModel):
