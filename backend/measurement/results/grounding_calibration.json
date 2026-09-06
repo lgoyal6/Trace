@@ -1,0 +1,212 @@
+{
+  "calibration": {
+    "brier": 0.0311,
+    "ece": 0.1086,
+    "fraction_positive": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.1538,
+      1.0,
+      0.9923,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "mean_predicted": [
+      0.0083,
+      0.1559,
+      0.2449,
+      0.3591,
+      0.4686,
+      0.582,
+      0.6594,
+      0.7574,
+      0.8575,
+      0.9826
+    ],
+    "n": 1624
+  },
+  "error_slices": {
+    "marker_after": {
+      "accuracy": 1.0,
+      "error_kind": "missed_grounding",
+      "error_rate": 0.0,
+      "errors": 0,
+      "n": 158,
+      "polarity": "grounded",
+      "precision": 1.0,
+      "predicted_grounded": 158,
+      "recall": 1.0
+    },
+    "misattributed": {
+      "accuracy": 1.0,
+      "error_kind": "false_grounding",
+      "error_rate": 0.0,
+      "errors": 0,
+      "n": 158,
+      "polarity": "ungrounded",
+      "precision": null,
+      "predicted_grounded": 0,
+      "recall": null
+    },
+    "numeric_flip": {
+      "accuracy": 1.0,
+      "error_kind": "false_grounding",
+      "error_rate": 0.0,
+      "errors": 0,
+      "n": 44,
+      "polarity": "ungrounded",
+      "precision": null,
+      "predicted_grounded": 0,
+      "recall": null
+    },
+    "off_topic": {
+      "accuracy": 1.0,
+      "error_kind": "false_grounding",
+      "error_rate": 0.0,
+      "errors": 0,
+      "n": 158,
+      "polarity": "ungrounded",
+      "precision": null,
+      "predicted_grounded": 0,
+      "recall": null
+    },
+    "paraphrase_10": {
+      "accuracy": 1.0,
+      "error_kind": "missed_grounding",
+      "error_rate": 0.0,
+      "errors": 0,
+      "n": 158,
+      "polarity": "grounded",
+      "precision": 1.0,
+      "predicted_grounded": 158,
+      "recall": 1.0
+    },
+    "paraphrase_20": {
+      "accuracy": 1.0,
+      "error_kind": "missed_grounding",
+      "error_rate": 0.0,
+      "errors": 0,
+      "n": 158,
+      "polarity": "grounded",
+      "precision": 1.0,
+      "predicted_grounded": 158,
+      "recall": 1.0
+    },
+    "paraphrase_30": {
+      "accuracy": 1.0,
+      "error_kind": "missed_grounding",
+      "error_rate": 0.0,
+      "errors": 0,
+      "n": 158,
+      "polarity": "grounded",
+      "precision": 1.0,
+      "predicted_grounded": 158,
+      "recall": 1.0
+    },
+    "paraphrase_40": {
+      "accuracy": 0.981,
+      "error_kind": "missed_grounding",
+      "error_rate": 0.019,
+      "errors": 3,
+      "n": 158,
+      "polarity": "grounded",
+      "precision": 1.0,
+      "predicted_grounded": 155,
+      "recall": 0.981
+    },
+    "same_condition": {
+      "accuracy": 0.9937,
+      "error_kind": "false_grounding",
+      "error_rate": 0.0063,
+      "errors": 1,
+      "n": 158,
+      "polarity": "ungrounded",
+      "precision": 0.0,
+      "predicted_grounded": 1,
+      "recall": null
+    },
+    "uncited": {
+      "accuracy": 1.0,
+      "error_kind": "false_grounding",
+      "error_rate": 0.0,
+      "errors": 0,
+      "n": 158,
+      "polarity": "ungrounded",
+      "precision": null,
+      "predicted_grounded": 0,
+      "recall": null
+    },
+    "verbatim": {
+      "accuracy": 1.0,
+      "error_kind": "missed_grounding",
+      "error_rate": 0.0,
+      "errors": 0,
+      "n": 158,
+      "polarity": "grounded",
+      "precision": 1.0,
+      "predicted_grounded": 158,
+      "recall": 1.0
+    }
+  },
+  "monitor": {
+    "alarm_delta": 0.0471,
+    "clean_grounded_rate": 0.5825,
+    "watches": "grounded-rate (unlabelled), against a clean-fold bootstrap alarm"
+  },
+  "n_bins": 10,
+  "n_test_cases": 1624,
+  "retraining_policy": "The grounding threshold is fixed at the dev-chosen value and is not moved by anything here. A monitor alarm is a signal for a human to audit and decide; re-tuning the check automatically against the drifted stream would let the monitor silently redefine 'grounded'. No retraining.",
+  "shift": {
+    "clean_baseline": {
+      "fires_false_alarm": false,
+      "grounded_rate": 0.5825,
+      "mean_score": 0.5136,
+      "precision": 0.9989,
+      "recall": 0.9968
+    },
+    "harder_negatives": {
+      "caught": false,
+      "false_positives_injected": 20,
+      "grounded_rate": 0.5948,
+      "grounded_rate_delta": 0.0123,
+      "ks_vs_clean": 0.0123,
+      "precision_clean": 0.9989,
+      "precision_shifted": 0.9783,
+      "verdict": "MISSED: harder negatives lower PRECISION (more slip through) while the grounded-rate barely moves, because a few negatives crossing the line looks the same to an unlabelled monitor as normal variation. Catch this with a labelled negative canary, not a rate watch."
+    },
+    "heavier_paraphrase": {
+      "caught": true,
+      "grounded_rate": 0.2155,
+      "grounded_rate_delta": 0.367,
+      "ks_vs_clean": 0.367,
+      "recall": 0.3681,
+      "verdict": "CAUGHT: heavier rewording pushes grounded claims below the threshold, the grounded-rate drops past the alarm, and the score distribution shifts (KS). A human is told to look."
+    },
+    "what_the_monitor_does_not_catch": [
+      "a precision regression from harder negatives (measured above)",
+      "any change that keeps the grounded-rate and score spread fixed; the serving monitor has no labels",
+      "a threshold that is wrong for a new corpus, until enough answers are audited by a human"
+    ]
+  },
+  "shipped_threshold": 0.55,
+  "split_label": "c25-v1 (reused from run_grounding_eval; test fold shares zero documents with dev)",
+  "worst_slices": [
+    {
+      "class": "paraphrase_40",
+      "error_kind": "missed_grounding",
+      "error_rate": 0.019,
+      "errors": 3,
+      "n": 158
+    },
+    {
+      "class": "same_condition",
+      "error_kind": "false_grounding",
+      "error_rate": 0.0063,
+      "errors": 1,
+      "n": 158
+    }
+  ]
+}
