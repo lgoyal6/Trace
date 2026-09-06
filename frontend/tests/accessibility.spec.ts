@@ -6,8 +6,7 @@ import { expect, test, type Page } from "@playwright/test";
  * the accessibility tree, the focus ring is read out of the computed style
  * after a real Tab, and the error is asserted through the alert role rather
  * than through its text position on screen. Every one of them failed on the
- * build before this suite existed; the record in
- * project-strengthening_materials/RECORD_frontend.md has the before/after.
+ * build before this suite existed.
  *
  * axe-core covers none of this: it accepts a placeholder as a name, has no
  * rule about a suppressed focus ring, and cannot see whether a message is

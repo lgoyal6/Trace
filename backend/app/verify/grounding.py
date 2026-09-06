@@ -11,8 +11,7 @@ claim. Two things it structurally cannot do:
    markers it FINDS, so a sentence with no marker produces no citation, is
    never sent to the judge, and is counted by nothing. A summary that is half
    unsourced assertion therefore reports a perfect support rate. That is the
-   defect this module was written against, reproduced in
-   `.agent-work/c31/repro_uncited_claim.py`.
+   defect this module was written against; `test_grounding.py` reproduces it.
 
 2. Under the `fake` profile the judge and the summariser are the same stand-in,
    so its verdict is the summariser marking its own homework. Under the `live`
@@ -260,7 +259,7 @@ def split_claims(markdown: str) -> list[str]:
     quotation of the cited abstract came back `uncited` and one such claim was
     enough to push the whole answer into abstention. Measured at 0.0127
     accuracy on the `verbatim` class of `run_grounding_eval.py` before this
-    existed; reproduction in `.agent-work/c31/repro_marker_after_period.py`.
+    existed, and that harness reproduces the measurement.
     """
     claims: list[str] = []
     for line in (markdown or "").splitlines():

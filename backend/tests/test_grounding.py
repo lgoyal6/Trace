@@ -13,7 +13,7 @@ the specific attack it exists to stop:
   * retrieval returning nothing usable            -> abstention, not an answer
 
 Every one of these passed silently before `backend/app/verify/grounding.py`
-existed; the reproductions are in `.agent-work/c31/`.
+existed, which is what each test below reproduces.
 """
 from __future__ import annotations
 
