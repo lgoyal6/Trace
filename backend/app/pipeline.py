@@ -11,6 +11,7 @@ from dataclasses import dataclass, replace
 from uuid import uuid4
 
 from backend.app.corpus.conditions import CONDITIONS
+from backend.app.corpus.retention import enforced as retention_enforced
 from backend.app.llm.compress import compress_abstract
 from backend.app.loop.hyde import run_hyde
 from backend.app.loop.refine import run_refine
@@ -228,6 +229,12 @@ def run_query(
     request_id = str(uuid4())
     services = get_services()
     llm = _RecordingLLM(services.llm)
+    # A deleted or redacted document must not reach a summary, a citation, or
+    # the response. Enforced here rather than trusted to the store, because
+    # the Cortex Search index is a materialisation with a one-hour lag and can
+    # legitimately still hold a record that PAPERS no longer does. Returns the
+    # port unchanged when no tombstone exists.
+    retrieval = retention_enforced(services.retrieval)
 
     if personalize:
         profile, seen, memory_read_ok = _load_memory_with_budget(services.memory, user_id)
@@ -244,7 +251,7 @@ def run_query(
     total_demoted = 0
 
     for round_idx in range(1, MAX_ROUNDS + 1):
-        raw_results = services.retrieval.search(
+        raw_results = retrieval.search(
             current_query,
             secondary_query=hyde_query,
             top_k=policy.top_k if policy else RETRIEVAL_TOP_K,
