@@ -162,7 +162,9 @@ without a container - and a mono strip runs along the bottom: `Live render · de
 8 primary · 0.72 decay · illustrative, not patient data`.
 
 **Section rail.** Every section opens with `§NN - hairline - EYEBROW`: a mono section number
-in `--blue-500`, a 28 px `--blue-300` rule, then the uppercase eyebrow. The old build's
+in `--blue-700`, a 28 px `--blue-300` rule, then the uppercase eyebrow. The number is text,
+so it takes the text blue: `--blue-500` was measured at 2.89:1 on white on the live page,
+which is the failure section 2.1 above rules out. The old build's
 bare eyebrow is gone; the numbering gives the page an apparatus a reader can cite back to.
 
 **Marginal citations.** The summary is set as an annotated edition, not a paragraph with

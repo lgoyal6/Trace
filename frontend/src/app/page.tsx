@@ -23,6 +23,10 @@ export default function Home() {
   useEffect(() => {
     if (result) {
       resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      // The scroll is the whole answer to "where did my results go" for a
+      // sighted reader. Someone driving the page from the keyboard is still
+      // parked on the Search button, so move the caret with the viewport.
+      resultsRef.current?.focus({ preventScroll: true });
     }
   }, [result]);
 
@@ -47,7 +51,7 @@ export default function Home() {
           </section>
         )}
         {result && (
-          <div ref={resultsRef}>
+          <div className="outline-none" ref={resultsRef} tabIndex={-1}>
             <SourcedSummary result={result} />
           </div>
         )}

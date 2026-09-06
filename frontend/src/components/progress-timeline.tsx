@@ -16,6 +16,22 @@ const DETAIL_LABEL: Record<string, string> = {
   citation_check: "citation_check · verifying claims",
 };
 
+/**
+ * The same progress the strip shows, as one sentence.
+ *
+ * The strip is dots and 10 px labels: a screen reader gets nothing from it
+ * while the request is in flight. This is what the live region in QueryForm
+ * announces, so the copy stays in one place.
+ */
+export function stageMessage(stages: ProgressStageEvent[]) {
+  const lastEvent = stages[stages.length - 1];
+  if (!lastEvent) return "Searching the literature.";
+  const index = STAGES.findIndex((stage) => stage.key === lastEvent.stage);
+  const label = index >= 0 ? STAGES[index].label : lastEvent.stage;
+  const position = index >= 0 ? `Step ${index + 1} of ${STAGES.length}, ` : "";
+  return `${position}${label}. ${DETAIL_LABEL[lastEvent.stage] ?? lastEvent.stage}`;
+}
+
 export type ProgressStageEvent = {
   stage: string;
   iteration?: number;
