@@ -1,0 +1,7 @@
+# Layout-aware document parsing (C31). Opt-in: NOT pulled into
+# backend/requirements.txt, because the API request path never parses a PDF and
+# these wheels are large. Install explicitly to run
+# backend/measurement/run_parser_eval.py or backend/tests/test_layout_parse.py:
+#     pip install -r backend/requirements-parsing.txt
+pymupdf>=1.24
+pdfplumber>=0.11
