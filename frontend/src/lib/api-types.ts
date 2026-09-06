@@ -440,7 +440,14 @@ export interface components {
             /** Cost Usd */
             cost_usd: number;
         };
-        /** CitationOut */
+        /**
+         * CitationOut
+         * @description `index` is the [N] slot in the prompt the summary was written against.
+         *     `retrieval_rank` and `source` are the retrieval provenance: the position
+         *     the record held in the ordering the answer was built from, and the backend
+         *     that served it. Both are carried through rather than re-derived, so a
+         *     stored answer can still name its sources after the prompt is gone.
+         */
         CitationOut: {
             /** Index */
             index: number;
@@ -450,6 +457,33 @@ export interface components {
             supported: boolean | null;
             /** Note */
             note: string | null;
+            /**
+             * Source
+             * @default
+             */
+            source: string;
+            /**
+             * Retrieval Rank
+             * @default 0
+             */
+            retrieval_rank: number;
+        };
+        /** ClaimVerdictOut */
+        ClaimVerdictOut: {
+            /** Position */
+            position: number;
+            /** Text */
+            text: string;
+            /** Cited Indices */
+            cited_indices: number[];
+            /** Cited Pmids */
+            cited_pmids: string[];
+            /** Verdict */
+            verdict: string;
+            /** Best Overlap */
+            best_overlap: number;
+            /** Numeric Conflict */
+            numeric_conflict: boolean;
         };
         /**
          * ConditionOut
@@ -543,6 +577,38 @@ export interface components {
         ForgetRequest: {
             /** User Id */
             user_id: string;
+        };
+        /**
+         * GroundingOut
+         * @description Per-claim grounding for this answer.
+         *
+         *     `uncited` counts assertions that carry no [N] at all -- the ones the
+         *     citation list structurally cannot contain, because it is built by
+         *     enumerating the markers that are present.
+         */
+        GroundingOut: {
+            /** Total Claims */
+            total_claims: number;
+            /** Grounded */
+            grounded: number;
+            /** Unsupported */
+            unsupported: number;
+            /** Uncited */
+            uncited: number;
+            /** Dangling */
+            dangling: number;
+            /** Skipped Fragments */
+            skipped_fragments: number;
+            /** Records Available */
+            records_available: number;
+            /** Grounded Rate */
+            grounded_rate: number;
+            /** Answerable */
+            answerable: boolean;
+            /** Threshold */
+            threshold: number;
+            /** Claims */
+            claims: components["schemas"]["ClaimVerdictOut"][];
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -683,6 +749,28 @@ export interface components {
             memory: components["schemas"]["MemoryOut"];
             cost: components["schemas"]["CostOut"];
             policy?: components["schemas"]["PolicyOut"] | null;
+            grounding?: components["schemas"]["GroundingOut"] | null;
+            /**
+             * Retrieval Provenance
+             * @default []
+             */
+            retrieval_provenance: components["schemas"]["RecordProvenanceOut"][];
+            /**
+             * Abstained
+             * @default false
+             */
+            abstained: boolean;
+        };
+        /** RecordProvenanceOut */
+        RecordProvenanceOut: {
+            /** Pmid */
+            pmid: string;
+            /** Source */
+            source: string;
+            /** Retrieval Rank */
+            retrieval_rank: number;
+            /** Score */
+            score: number;
         };
         /** RequestCallOut */
         RequestCallOut: {
