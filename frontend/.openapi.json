@@ -1,0 +1,1838 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "NeuLitTrace API",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/query": {
+      "post": {
+        "summary": "Query",
+        "operationId": "query_query_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QueryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueryResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/query/stream": {
+      "post": {
+        "summary": "Query Stream",
+        "description": "Runs the same pipeline as POST /query but over SSE, emitting `stage`\nevents as the search loop progresses (hyde_expand, retrieval,\nrelevance_check, refine_query, summarize, citation_check - the same\nstage names v1 used) followed by one `done` event with the full result.\nThe frozen HTTP contract in plan-v2/00-SHARED-CONTRACTS.md section 4\ndoesn't define this route's event shape, so it's ours to choose; matching\nv1's stage names is what frontend/src/components/progress-timeline.tsx\nalready expects.",
+        "operationId": "query_stream_query_stream_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QueryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/demo-contrast": {
+      "get": {
+        "summary": "Demo Contrast",
+        "operationId": "demo_contrast_demo_contrast_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoContrastResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/conditions": {
+      "get": {
+        "summary": "Conditions",
+        "operationId": "conditions_conditions_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ConditionOut"
+                  },
+                  "type": "array",
+                  "title": "Response Conditions Conditions Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/atlas": {
+      "get": {
+        "summary": "Get Default Atlas",
+        "operationId": "get_default_atlas_atlas_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/atlas/query": {
+      "get": {
+        "summary": "Get Query Atlas",
+        "operationId": "get_query_atlas_atlas_query_get",
+        "parameters": [
+          {
+            "name": "conditions",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Conditions"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/atlas/{condition_name}": {
+      "get": {
+        "summary": "Get Atlas",
+        "operationId": "get_atlas_atlas__condition_name__get",
+        "parameters": [
+          {
+            "name": "condition_name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Condition Name"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/economics/summary": {
+      "get": {
+        "summary": "Economics Summary",
+        "operationId": "economics_summary_economics_summary_get",
+        "parameters": [
+          {
+            "name": "window",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "24h",
+              "title": "Window"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EconomicsSummaryOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/economics/request/{request_id}": {
+      "get": {
+        "summary": "Economics Request",
+        "operationId": "economics_request_economics_request__request_id__get",
+        "parameters": [
+          {
+            "name": "request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Request Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EconomicsRequestOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/economics/ask": {
+      "post": {
+        "summary": "Economics Ask",
+        "operationId": "economics_ask_economics_ask_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EconomicsAskRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EconomicsAskOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/memory/profile": {
+      "get": {
+        "summary": "Memory Profile",
+        "operationId": "memory_profile_memory_profile_get",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/memory/specialty": {
+      "post": {
+        "summary": "Memory Specialty",
+        "operationId": "memory_specialty_memory_specialty_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SpecialtyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/memory/forget": {
+      "post": {
+        "summary": "Memory Forget",
+        "operationId": "memory_forget_memory_forget_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForgetRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/memory/thread": {
+      "get": {
+        "summary": "Memory Thread",
+        "operationId": "memory_thread_memory_thread_get",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "User Id"
+            }
+          },
+          {
+            "name": "session_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ThreadOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/memex/query": {
+      "post": {
+        "tags": [
+          "memex"
+        ],
+        "summary": "Memex Query",
+        "description": "One question, both paths, priced. Optionally books the trade.",
+        "operationId": "memex_query_memex_query_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MemexQueryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Memex Query Memex Query Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/memex/market": {
+      "get": {
+        "tags": [
+          "memex"
+        ],
+        "summary": "Market Book",
+        "description": "Wallets, trade feed, totals. What the dashboard polls.",
+        "operationId": "market_book_memex_market_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Market Book Memex Market Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/memex/market/reset": {
+      "post": {
+        "tags": [
+          "memex"
+        ],
+        "summary": "Market Reset",
+        "description": "Back to opening balances. The rehearsal button.",
+        "operationId": "market_reset_memex_market_reset_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Market Reset Memex Market Reset Post"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/memex/shock": {
+      "post": {
+        "tags": [
+          "memex"
+        ],
+        "summary": "Shock",
+        "description": "Destroy the memory, re-price the same question, return the spike.\n\nThe forget() lands first, so the re-priced run genuinely has no profile to\nlean on - the spike is measured, not asserted.",
+        "operationId": "shock_memex_shock_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShockRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Shock Memex Shock Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/memex/scarcity": {
+      "get": {
+        "tags": [
+          "memex"
+        ],
+        "summary": "Scarcity Table",
+        "description": "Every condition, its paper count, and its multiplier. Rarest first.",
+        "operationId": "scarcity_table_memex_scarcity_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Scarcity Table Memex Scarcity Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/memex/pricing": {
+      "get": {
+        "tags": [
+          "memex"
+        ],
+        "summary": "Pricing Table",
+        "description": "The published rate table, so the cost claim is inspectable on stage.",
+        "operationId": "pricing_table_memex_pricing_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Pricing Table Memex Pricing Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/memex/health": {
+      "get": {
+        "tags": [
+          "memex"
+        ],
+        "summary": "Memex Health",
+        "operationId": "memex_health_memex_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Memex Health Memex Health Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Health",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Health Health Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "BrainRegionOut": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "atlas_label": {
+            "type": "string",
+            "title": "Atlas Label"
+          },
+          "region_literature": {
+            "type": "string",
+            "title": "Region Literature"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "atlas_label",
+          "region_literature"
+        ],
+        "title": "BrainRegionOut"
+      },
+      "CallSiteBreakdown": {
+        "properties": {
+          "call_site": {
+            "type": "string",
+            "title": "Call Site"
+          },
+          "requests": {
+            "type": "integer",
+            "title": "Requests"
+          },
+          "tokens": {
+            "type": "integer",
+            "title": "Tokens"
+          },
+          "cost_usd": {
+            "type": "number",
+            "title": "Cost Usd"
+          }
+        },
+        "type": "object",
+        "required": [
+          "call_site",
+          "requests",
+          "tokens",
+          "cost_usd"
+        ],
+        "title": "CallSiteBreakdown"
+      },
+      "CallSiteCostOut": {
+        "properties": {
+          "tokens": {
+            "type": "integer",
+            "title": "Tokens"
+          },
+          "cost_usd": {
+            "type": "number",
+            "title": "Cost Usd"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tokens",
+          "cost_usd"
+        ],
+        "title": "CallSiteCostOut"
+      },
+      "CitationOut": {
+        "properties": {
+          "index": {
+            "type": "integer",
+            "title": "Index"
+          },
+          "pmid": {
+            "type": "string",
+            "title": "Pmid"
+          },
+          "supported": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supported"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source",
+            "default": ""
+          },
+          "retrieval_rank": {
+            "type": "integer",
+            "title": "Retrieval Rank",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "index",
+          "pmid",
+          "supported",
+          "note"
+        ],
+        "title": "CitationOut",
+        "description": "`index` is the [N] slot in the prompt the summary was written against.\n`retrieval_rank` and `source` are the retrieval provenance: the position\nthe record held in the ordering the answer was built from, and the backend\nthat served it. Both are carried through rather than re-derived, so a\nstored answer can still name its sources after the prompt is gone."
+      },
+      "ClaimVerdictOut": {
+        "properties": {
+          "position": {
+            "type": "integer",
+            "title": "Position"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "cited_indices": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Cited Indices"
+          },
+          "cited_pmids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Cited Pmids"
+          },
+          "verdict": {
+            "type": "string",
+            "title": "Verdict"
+          },
+          "best_overlap": {
+            "type": "number",
+            "title": "Best Overlap"
+          },
+          "numeric_conflict": {
+            "type": "boolean",
+            "title": "Numeric Conflict"
+          }
+        },
+        "type": "object",
+        "required": [
+          "position",
+          "text",
+          "cited_indices",
+          "cited_pmids",
+          "verdict",
+          "best_overlap",
+          "numeric_conflict"
+        ],
+        "title": "ClaimVerdictOut"
+      },
+      "ConditionOut": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "rarity": {
+            "type": "string",
+            "title": "Rarity"
+          },
+          "region_literature": {
+            "type": "string",
+            "title": "Region Literature"
+          },
+          "atlas_label": {
+            "type": "string",
+            "title": "Atlas Label"
+          },
+          "overlaps_with": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Overlaps With"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "rarity",
+          "region_literature",
+          "atlas_label",
+          "overlaps_with"
+        ],
+        "title": "ConditionOut",
+        "description": "Consumed by backend/api/routes/conditions.py (Card 1). Keep in sync\nwith backend.app.corpus.conditions.Condition if that shape ever changes."
+      },
+      "ContrastPaperOut": {
+        "properties": {
+          "pmid": {
+            "type": "string",
+            "title": "Pmid"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "condition": {
+            "type": "string",
+            "title": "Condition"
+          },
+          "rarity": {
+            "type": "string",
+            "title": "Rarity"
+          }
+        },
+        "type": "object",
+        "required": [
+          "pmid",
+          "title",
+          "condition",
+          "rarity"
+        ],
+        "title": "ContrastPaperOut"
+      },
+      "CostOut": {
+        "properties": {
+          "total_tokens": {
+            "type": "integer",
+            "title": "Total Tokens"
+          },
+          "cost_usd": {
+            "type": "number",
+            "title": "Cost Usd"
+          },
+          "by_call_site": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/CallSiteCostOut"
+            },
+            "type": "object",
+            "title": "By Call Site"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_tokens",
+          "cost_usd",
+          "by_call_site"
+        ],
+        "title": "CostOut"
+      },
+      "DemoContrastResponse": {
+        "properties": {
+          "query": {
+            "type": "string",
+            "title": "Query"
+          },
+          "naive": {
+            "items": {
+              "$ref": "#/components/schemas/ContrastPaperOut"
+            },
+            "type": "array",
+            "title": "Naive"
+          },
+          "weighted": {
+            "items": {
+              "$ref": "#/components/schemas/ContrastPaperOut"
+            },
+            "type": "array",
+            "title": "Weighted"
+          },
+          "rare_case_pmid": {
+            "type": "string",
+            "title": "Rare Case Pmid"
+          }
+        },
+        "type": "object",
+        "required": [
+          "query",
+          "naive",
+          "weighted",
+          "rare_case_pmid"
+        ],
+        "title": "DemoContrastResponse"
+      },
+      "EconomicsAskOut": {
+        "properties": {
+          "answer": {
+            "type": "string",
+            "title": "Answer"
+          },
+          "sql": {
+            "type": "string",
+            "title": "Sql"
+          },
+          "rows": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Rows"
+          }
+        },
+        "type": "object",
+        "required": [
+          "answer",
+          "sql",
+          "rows"
+        ],
+        "title": "EconomicsAskOut"
+      },
+      "EconomicsAskRequest": {
+        "properties": {
+          "question": {
+            "type": "string",
+            "title": "Question"
+          }
+        },
+        "type": "object",
+        "required": [
+          "question"
+        ],
+        "title": "EconomicsAskRequest"
+      },
+      "EconomicsRequestOut": {
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          },
+          "calls": {
+            "items": {
+              "$ref": "#/components/schemas/RequestCallOut"
+            },
+            "type": "array",
+            "title": "Calls"
+          },
+          "total_cost_usd": {
+            "type": "number",
+            "title": "Total Cost Usd"
+          }
+        },
+        "type": "object",
+        "required": [
+          "request_id",
+          "calls",
+          "total_cost_usd"
+        ],
+        "title": "EconomicsRequestOut"
+      },
+      "EconomicsSummaryOut": {
+        "properties": {
+          "total_requests": {
+            "type": "integer",
+            "title": "Total Requests"
+          },
+          "total_tokens": {
+            "type": "integer",
+            "title": "Total Tokens"
+          },
+          "total_cost_usd": {
+            "type": "number",
+            "title": "Total Cost Usd"
+          },
+          "by_call_site": {
+            "items": {
+              "$ref": "#/components/schemas/CallSiteBreakdown"
+            },
+            "type": "array",
+            "title": "By Call Site"
+          },
+          "by_hour": {
+            "items": {
+              "$ref": "#/components/schemas/HourlyBreakdown"
+            },
+            "type": "array",
+            "title": "By Hour"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_requests",
+          "total_tokens",
+          "total_cost_usd",
+          "by_call_site",
+          "by_hour"
+        ],
+        "title": "EconomicsSummaryOut"
+      },
+      "ForgetRequest": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id"
+        ],
+        "title": "ForgetRequest"
+      },
+      "GroundingOut": {
+        "properties": {
+          "total_claims": {
+            "type": "integer",
+            "title": "Total Claims"
+          },
+          "grounded": {
+            "type": "integer",
+            "title": "Grounded"
+          },
+          "unsupported": {
+            "type": "integer",
+            "title": "Unsupported"
+          },
+          "uncited": {
+            "type": "integer",
+            "title": "Uncited"
+          },
+          "dangling": {
+            "type": "integer",
+            "title": "Dangling"
+          },
+          "skipped_fragments": {
+            "type": "integer",
+            "title": "Skipped Fragments"
+          },
+          "records_available": {
+            "type": "integer",
+            "title": "Records Available"
+          },
+          "grounded_rate": {
+            "type": "number",
+            "title": "Grounded Rate"
+          },
+          "answerable": {
+            "type": "boolean",
+            "title": "Answerable"
+          },
+          "threshold": {
+            "type": "number",
+            "title": "Threshold"
+          },
+          "claims": {
+            "items": {
+              "$ref": "#/components/schemas/ClaimVerdictOut"
+            },
+            "type": "array",
+            "title": "Claims"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_claims",
+          "grounded",
+          "unsupported",
+          "uncited",
+          "dangling",
+          "skipped_fragments",
+          "records_available",
+          "grounded_rate",
+          "answerable",
+          "threshold",
+          "claims"
+        ],
+        "title": "GroundingOut",
+        "description": "Per-claim grounding for this answer.\n\n`uncited` counts assertions that carry no [N] at all -- the ones the\ncitation list structurally cannot contain, because it is built by\nenumerating the markers that are present."
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HourlyBreakdown": {
+        "properties": {
+          "hour_iso": {
+            "type": "string",
+            "title": "Hour Iso"
+          },
+          "tokens": {
+            "type": "integer",
+            "title": "Tokens"
+          },
+          "cost_usd": {
+            "type": "number",
+            "title": "Cost Usd"
+          }
+        },
+        "type": "object",
+        "required": [
+          "hour_iso",
+          "tokens",
+          "cost_usd"
+        ],
+        "title": "HourlyBreakdown"
+      },
+      "MemexQueryRequest": {
+        "properties": {
+          "query": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Query"
+          },
+          "session_id": {
+            "type": "string",
+            "title": "Session Id",
+            "default": "demo-session"
+          },
+          "user_id": {
+            "type": "string",
+            "title": "User Id",
+            "default": "demo-researcher"
+          },
+          "personalize": {
+            "type": "boolean",
+            "title": "Personalize",
+            "default": true
+          },
+          "settle": {
+            "type": "boolean",
+            "title": "Settle",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "query"
+        ],
+        "title": "MemexQueryRequest"
+      },
+      "MemoryOut": {
+        "properties": {
+          "applied": {
+            "type": "boolean",
+            "title": "Applied"
+          },
+          "seen_filtered": {
+            "type": "integer",
+            "title": "Seen Filtered"
+          },
+          "profile_used": {
+            "type": "boolean",
+            "title": "Profile Used"
+          },
+          "distilled_context": {
+            "type": "string",
+            "title": "Distilled Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "applied",
+          "seen_filtered",
+          "profile_used",
+          "distilled_context"
+        ],
+        "title": "MemoryOut"
+      },
+      "PaperOut": {
+        "properties": {
+          "pmid": {
+            "type": "string",
+            "title": "Pmid"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "abstract": {
+            "type": "string",
+            "title": "Abstract"
+          },
+          "journal": {
+            "type": "string",
+            "title": "Journal"
+          },
+          "year": {
+            "type": "integer",
+            "title": "Year"
+          },
+          "condition": {
+            "type": "string",
+            "title": "Condition"
+          },
+          "isRare": {
+            "type": "boolean",
+            "title": "Israre"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "pmid",
+          "title",
+          "abstract",
+          "journal",
+          "year",
+          "condition",
+          "isRare",
+          "url"
+        ],
+        "title": "PaperOut"
+      },
+      "PolicyOut": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "topK": {
+            "type": "integer",
+            "title": "Topk"
+          },
+          "compressTopN": {
+            "type": "integer",
+            "title": "Compresstopn"
+          },
+          "papersInPrompt": {
+            "type": "integer",
+            "title": "Papersinprompt"
+          },
+          "promptTokensBeforeCompression": {
+            "type": "integer",
+            "title": "Prompttokensbeforecompression"
+          },
+          "promptTokensAfterCompression": {
+            "type": "integer",
+            "title": "Prompttokensaftercompression"
+          },
+          "tokensSaved": {
+            "type": "integer",
+            "title": "Tokenssaved"
+          },
+          "reductionPct": {
+            "type": "number",
+            "title": "Reductionpct"
+          }
+        },
+        "type": "object",
+        "required": [
+          "label",
+          "topK",
+          "compressTopN",
+          "papersInPrompt",
+          "promptTokensBeforeCompression",
+          "promptTokensAfterCompression",
+          "tokensSaved",
+          "reductionPct"
+        ],
+        "title": "PolicyOut",
+        "description": "Which retrieval policy ran and what it cost the prompt. Null when the\nrequest didn't ask for one (today's default path)."
+      },
+      "ProfileOut": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "specialty": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Specialty"
+          },
+          "conditions_explored": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Conditions Explored"
+          },
+          "query_count": {
+            "type": "integer",
+            "title": "Query Count"
+          },
+          "distilled_context": {
+            "type": "string",
+            "title": "Distilled Context"
+          },
+          "seen_pmid_count": {
+            "type": "integer",
+            "title": "Seen Pmid Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "specialty",
+          "conditions_explored",
+          "query_count",
+          "distilled_context",
+          "seen_pmid_count"
+        ],
+        "title": "ProfileOut"
+      },
+      "QueryRequest": {
+        "properties": {
+          "query": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Query"
+          },
+          "session_id": {
+            "type": "string",
+            "title": "Session Id"
+          },
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "personalize": {
+            "type": "boolean",
+            "title": "Personalize",
+            "default": false
+          },
+          "policy": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Policy"
+          }
+        },
+        "type": "object",
+        "required": [
+          "query",
+          "session_id",
+          "user_id"
+        ],
+        "title": "QueryRequest"
+      },
+      "QueryResponse": {
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          },
+          "summary_markdown": {
+            "type": "string",
+            "title": "Summary Markdown"
+          },
+          "citations": {
+            "items": {
+              "$ref": "#/components/schemas/CitationOut"
+            },
+            "type": "array",
+            "title": "Citations"
+          },
+          "papers": {
+            "items": {
+              "$ref": "#/components/schemas/ScoredPaperOut"
+            },
+            "type": "array",
+            "title": "Papers"
+          },
+          "trace": {
+            "items": {
+              "$ref": "#/components/schemas/TraceRoundOut"
+            },
+            "type": "array",
+            "title": "Trace"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BrainRegionOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "memory": {
+            "$ref": "#/components/schemas/MemoryOut"
+          },
+          "cost": {
+            "$ref": "#/components/schemas/CostOut"
+          },
+          "policy": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PolicyOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "grounding": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GroundingOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "retrieval_provenance": {
+            "items": {
+              "$ref": "#/components/schemas/RecordProvenanceOut"
+            },
+            "type": "array",
+            "title": "Retrieval Provenance",
+            "default": []
+          },
+          "abstained": {
+            "type": "boolean",
+            "title": "Abstained",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "request_id",
+          "summary_markdown",
+          "citations",
+          "papers",
+          "trace",
+          "region",
+          "memory",
+          "cost"
+        ],
+        "title": "QueryResponse"
+      },
+      "RecordProvenanceOut": {
+        "properties": {
+          "pmid": {
+            "type": "string",
+            "title": "Pmid"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "retrieval_rank": {
+            "type": "integer",
+            "title": "Retrieval Rank"
+          },
+          "score": {
+            "type": "number",
+            "title": "Score"
+          }
+        },
+        "type": "object",
+        "required": [
+          "pmid",
+          "source",
+          "retrieval_rank",
+          "score"
+        ],
+        "title": "RecordProvenanceOut"
+      },
+      "RequestCallOut": {
+        "properties": {
+          "call_site": {
+            "type": "string",
+            "title": "Call Site"
+          },
+          "prompt_tokens": {
+            "type": "integer",
+            "title": "Prompt Tokens"
+          },
+          "completion_tokens": {
+            "type": "integer",
+            "title": "Completion Tokens"
+          },
+          "cost_usd": {
+            "type": "number",
+            "title": "Cost Usd"
+          },
+          "latency_ms": {
+            "type": "integer",
+            "title": "Latency Ms"
+          },
+          "degraded": {
+            "type": "boolean",
+            "title": "Degraded"
+          }
+        },
+        "type": "object",
+        "required": [
+          "call_site",
+          "prompt_tokens",
+          "completion_tokens",
+          "cost_usd",
+          "latency_ms",
+          "degraded"
+        ],
+        "title": "RequestCallOut"
+      },
+      "ScoredPaperOut": {
+        "properties": {
+          "paper": {
+            "$ref": "#/components/schemas/PaperOut"
+          },
+          "score": {
+            "type": "number",
+            "title": "Score"
+          },
+          "lexicalScore": {
+            "type": "number",
+            "title": "Lexicalscore"
+          },
+          "semanticScore": {
+            "type": "number",
+            "title": "Semanticscore"
+          },
+          "rarityMultiplier": {
+            "type": "number",
+            "title": "Raritymultiplier"
+          },
+          "memoryMultiplier": {
+            "type": "number",
+            "title": "Memorymultiplier"
+          }
+        },
+        "type": "object",
+        "required": [
+          "paper",
+          "score",
+          "lexicalScore",
+          "semanticScore",
+          "rarityMultiplier",
+          "memoryMultiplier"
+        ],
+        "title": "ScoredPaperOut"
+      },
+      "ShockRequest": {
+        "properties": {
+          "query": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Query"
+          },
+          "session_id": {
+            "type": "string",
+            "title": "Session Id",
+            "default": "demo-session"
+          },
+          "user_id": {
+            "type": "string",
+            "title": "User Id",
+            "default": "demo-researcher"
+          }
+        },
+        "type": "object",
+        "required": [
+          "query"
+        ],
+        "title": "ShockRequest"
+      },
+      "SpecialtyRequest": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "specialty": {
+            "type": "string",
+            "title": "Specialty"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "specialty"
+        ],
+        "title": "SpecialtyRequest"
+      },
+      "ThreadOut": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "title": "Session Id"
+          },
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "queries": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Queries"
+          },
+          "pmids_shown": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Pmids Shown"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "user_id",
+          "queries",
+          "pmids_shown"
+        ],
+        "title": "ThreadOut"
+      },
+      "TraceRoundOut": {
+        "properties": {
+          "iteration": {
+            "type": "integer",
+            "title": "Iteration"
+          },
+          "retrieved_pmids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Retrieved Pmids"
+          },
+          "relevant": {
+            "type": "boolean",
+            "title": "Relevant"
+          },
+          "confidence": {
+            "type": "number",
+            "title": "Confidence"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note"
+          },
+          "memory_applied": {
+            "type": "boolean",
+            "title": "Memory Applied"
+          },
+          "seen_filtered": {
+            "type": "integer",
+            "title": "Seen Filtered"
+          }
+        },
+        "type": "object",
+        "required": [
+          "iteration",
+          "retrieved_pmids",
+          "relevant",
+          "confidence",
+          "note",
+          "memory_applied",
+          "seen_filtered"
+        ],
+        "title": "TraceRoundOut"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}
