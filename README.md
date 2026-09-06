@@ -88,7 +88,19 @@ The re-rank cap is the personalization argument in two numbers: rarity multiplie
 
 The memory read is all-or-nothing. `get_profile`, `seen_pmids` and `health` share one 300 ms budget; any of the three missing the budget, or a `health` that is not `ok`, returns an explicitly unpersonalized answer. `health` rides along precisely because the other two return empty defaults instead of errors, so a fast success full of defaults would otherwise be indistinguishable from a fast success full of real data.
 
-Compression runs on a copy. `check_citations` and the `papers` in the response both read the original abstracts, so the token saving never reaches the text a claim is verified against.
+Compression runs on a copy. `check_citations`, the grounding check, and the `papers` in the response all read the original abstracts, so the token saving never reaches the text a claim is verified against.
+
+### Grounding
+
+Every answer carries a per-claim grounding report and the retrieval provenance of the records it was built from.
+
+`backend/app/verify/grounding.py` splits the summary into claims and gives each one of four verdicts: `grounded` (a cited record's abstract carries it), `unsupported` (the cited record does not), `uncited` (the claim carries no `[N]` at all), `dangling` (the claim cites an `[N]` that was never retrieved). It is lexical and local: content-word containment against the cited abstract, with every number in the claim required to appear there too. `uncited` and `dangling` are the two the citation list cannot express, because that list is built by enumerating the markers that are present.
+
+The support threshold is 0.55, swept over eleven values on a `dev` fold of the corpus and reported on a held-out `test` fold the sweep never saw: precision 0.9989, recall 0.9968, F1 0.9979 over 1624 labelled cases, one false positive and three false negatives. Seven of the eleven case classes are negatives, including a sentence from a different paper about the same condition. `python -m backend.measurement.run_grounding_eval` reproduces it with no credentials and no model, and states outright whether the shipped threshold is still the dev-best one.
+
+When nothing retrieved supports an answer, the response abstains: `abstained` is true and `summary_markdown` is a fixed line rather than a model output. Three conditions trigger it, and they are the same failure in different clothes: no records retrieved, no traceable assertion in the text, or not one claim grounded in a record.
+
+Each citation carries `source` (the retrieval backend that served the record) and `retrieval_rank` (its position in the ordering the answer was built from). Both are looked up by PMID from the retrieval provenance rather than derived from the `[N]` marker, so a stored answer can still name its sources once the prompt is gone.
 
 ### Where cost is recorded
 
@@ -117,11 +129,56 @@ Every exit from `chat()` writes exactly one row. The cache hit writes its own be
 
 ## Quickstart
 
+Needs Python 3.11 or newer and Node 20 or newer. Nothing here needs a Snowflake
+account, an EverMind key, or a `.env` file: the `fake` profile serves the same
+329-paper corpus from `backend/data/corpus.json` through the same pipeline, so
+retrieval, the citation check, memory and the token ledger all run end to end
+against real data. Credentials only become necessary for the `live` profile,
+which is what the Limitations section is about.
+
+Install the backend dependencies first. They are pinned in `requirements.txt`,
+and Snowpark is in there even for the fake profile because the adapters import
+it at module load:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+```
+
 Start the credential-free backend profile:
 
 ```bash
 NEULIT_PROFILE=fake python -m uvicorn backend.api.main:app --reload --port 8000
 ```
+
+One command is enough to see it work, before you touch the frontend at all.
+Note the snake_case field names in the request: `QueryRequest` is a plain
+pydantic model with no alias generator, so `sessionId` is not an accepted
+spelling of `session_id` and earns a 422 rather than being quietly ignored.
+
+```bash
+curl -s http://localhost:8000/health
+curl -s -X POST http://localhost:8000/query -H 'Content-Type: application/json' \
+  -d '{"query":"What is known about MELAS?","session_id":"s1","user_id":"demo"}'
+```
+
+`/health` reports each port separately (`fake retrieval, 329 papers`), which is
+the same degradation surface the live profile uses. `/query` comes back with
+`summary_markdown`, a `citations` array where every claim carries the PMID it
+came from and whether the sentence was actually found in that abstract, and the
+`papers` behind it. The fake LLM stitches its summary from retrieved abstracts
+rather than reasoning about your question, so treat the wording as a pipeline
+trace and not as an answer.
+
+The response casing is mixed, and it is easier to know that than to discover it
+while grepping for a field that is not there. The envelope is snake_case
+(`summary_markdown`, `request_id`, `cost.cost_usd`), while the scored papers
+inside `papers` are camelCase (`lexicalScore`, `rarityMultiplier`): those
+schemas inherit `CamelModel` in `backend/api/schemas.py` and the envelope does
+not. Nothing hand-written depends on either choice, because the frontend's
+types are generated from `/openapi.json`, which carries whichever spelling a
+schema actually serializes.
 
 Then run the frontend:
 
@@ -131,6 +188,12 @@ npm ci
 npm run types:gen
 npm run dev
 ```
+
+`types:gen` curls `http://localhost:8000/openapi.json` and generates
+`src/lib/api-types.ts` from it, so the backend has to be running first: the
+frontend's types are derived from the live contract rather than hand-kept in
+step with it. The frontend defaults to `http://localhost:8000`, so no
+environment file is needed for a local run either.
 
 Open `http://localhost:3000`. The API contract is available at `http://localhost:8000/openapi.json`.
 
