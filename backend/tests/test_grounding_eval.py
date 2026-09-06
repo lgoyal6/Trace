@@ -198,9 +198,8 @@ def _result_with(markdown: str):
 
 
 def test_unsourced_assertions_are_counted_against_the_support_rate():
-    """Reproduction: `.agent-work/c31/repro_uncited_claim.py`. Two of these
-    four sentences come from nowhere, and the metric used to report
-    claims=2, support_rate=1.0."""
+    """Two of these four sentences come from nowhere, and the metric used to
+    report claims=2, support_rate=1.0."""
     result = _result_with(
         "MRI showed nerve root enhancement in eight patients [1]. "
         "FDG PET detected hypermetabolic nerve segments [2]. "

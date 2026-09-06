@@ -361,8 +361,8 @@ def measure_citation_support(result, *, shuffle_attribution: bool = False) -> di
     `uncited` counts assertions in the summary that carry no [N] at all.
     Iterating `result.citations` alone cannot see them: that list is built by
     enumerating the markers that ARE present, so a summary half made of
-    unsourced assertion used to report a support rate of 1.0. Measured
-    reproduction: `.agent-work/c31/repro_uncited_claim.py`. They are counted
+    unsourced assertion used to report a support rate of 1.0, which
+    `test_grounding_eval.py` reproduces. They are counted
     into the denominator, because a claim from nowhere is a worse failure than
     a claim cited to the wrong paper, not an absent one.
     """

@@ -17,8 +17,8 @@ every test that touches `get_services()` gets `CortexSearchRetriever` and
 
 Measured before this file existed: `pytest backend/tests` gave 15 failures
 that all passed when their files were run alone, and the run opened real
-network connections to Snowflake (which failed on MFA). Reproduction:
-`.agent-work/c31/repro_env_leak.py`.
+network connections to Snowflake (which failed on MFA). To see it again,
+unset the pin below and run the whole directory rather than one file.
 
 The failure mode matters more than the failure count. Without credentials
 `CortexSearchRetriever.search` logs a warning and returns `[]` -- it does not
