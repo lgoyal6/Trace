@@ -10,3 +10,6 @@ test-results/
 
 # graphify knowledge graph (local index, not source)
 graphify-out/
+
+# Schemathesis keeps a local cache of shrunk failing cases here.
+.schemathesis/
