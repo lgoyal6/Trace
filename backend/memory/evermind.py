@@ -28,13 +28,52 @@ _SEEN_CACHE_TTL_SECONDS = 60.0
 _REQUEST_TIMEOUT_SECONDS = 5.0
 
 
+def _destination_allowed(url: str) -> bool:
+    """`backend/app/net/safe_http`'s scheme and address policy, applied to the
+    configured base URL. `safe_http.fetch` itself is GET-only and this client
+    needs GET/POST/PUT/DELETE, so the policy is reused rather than the
+    transport. See `safe_http.assert_destination_allowed` for what that does
+    and does not cover.
+    """
+    from backend.app.net.safe_http import FetchPolicyError, assert_destination_allowed
+
+    try:
+        assert_destination_allowed(url)
+        return True
+    except FetchPolicyError:
+        return False
+    except Exception:  # resolution failure at import/boot time must not raise
+        logger.warning("EverOS destination check failed for %r", url, exc_info=True)
+        return False
+
+
 class EverOSMemory:
     def __init__(self) -> None:
         self._base_url = os.environ.get("EVEROS_BASE_URL", "").rstrip("/")
         self._api_key = os.environ.get("EVEROS_API_KEY", "")
         self._namespace = os.environ.get("EVEROS_NAMESPACE", "neulittrace")
         self._configured = bool(self._base_url and self._api_key)
-        self._client = httpx.Client(timeout=_REQUEST_TIMEOUT_SECONDS) if self._configured else None
+        if self._configured and not _destination_allowed(self._base_url):
+            # EVEROS_BASE_URL is an environment variable with no validation of
+            # its own, and every request to it carries `Authorization: Bearer
+            # <key>`. A base URL pointing at loopback or link-local space is a
+            # credential handed to whatever is listening there. Refusing to
+            # configure is the degradation this class already promises: every
+            # read returns an empty default and every write is a logged no-op.
+            logger.warning(
+                "EVEROS_BASE_URL %r is not an allowed destination; EverOS memory disabled",
+                self._base_url,
+            )
+            self._configured = False
+        self._client = (
+            # follow_redirects=False is httpx's default, but it is stated here
+            # rather than relied on: httpx copies request headers onto a
+            # redirect target, so a flipped default would hand the bearer
+            # token to whoever writes the Location header.
+            httpx.Client(timeout=_REQUEST_TIMEOUT_SECONDS, follow_redirects=False)
+            if self._configured
+            else None
+        )
         # user_id -> (expires_at_monotonic, pmids). Explicit eviction on every
         # write, not just TTL expiry, so forget()/record_papers_shown() can
         # never serve a stale seen-set.
