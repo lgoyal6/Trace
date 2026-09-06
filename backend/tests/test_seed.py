@@ -15,4 +15,8 @@ def test_run_seed_demo_returns_a_populated_result(monkeypatch):
         # Additive, optional, null unless a retrieval policy was requested --
         # see Decisions.md, "POST /query gains an optional policy".
         "policy",
+        # Additive grounding block: per-claim verdicts, the rank-annotated
+        # provenance of the record set the answer was built from, and whether
+        # the answer abstained because nothing retrieved supported it.
+        "grounding", "retrieval_provenance", "abstained",
     }

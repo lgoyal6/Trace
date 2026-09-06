@@ -7,7 +7,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, wait
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from uuid import uuid4
 
 from backend.app.corpus.conditions import CONDITIONS
@@ -20,6 +20,14 @@ from backend.app.loop.trace import LoopTraceEntry
 from backend.app.retrieval.policy import RetrievalPolicy
 from backend.app.summary.generate import SourcedCitation, generate_sourced_summary
 from backend.app.verify.citation_check import check_citations
+from backend.app.verify.grounding import (
+    ABSTENTION_MARKDOWN,
+    GroundingReport,
+    RecordProvenance,
+    check_grounding,
+    provenance_for,
+    source_name,
+)
 from backend.contracts.models import ChatResult, Message, ResearcherProfile, ScoredPaper
 from backend.contracts.ports import LLMPort, MemoryPort
 from backend.contracts.registry import get_services
@@ -90,6 +98,14 @@ class QueryResult:
     memory: MemoryInfo
     cost: CostInfo
     policy: PolicyInfo | None = None
+    #: Rank-annotated provenance for the record set the answer was built from.
+    retrieval_provenance: list[RecordProvenance] = field(default_factory=list)
+    #: Per-claim grounding verdicts. Always populated, including when the
+    #: answer abstained -- `grounding.answerable` is why it abstained.
+    grounding: GroundingReport | None = None
+    #: True when nothing retrieved supported an answer and the summary was
+    #: replaced with `ABSTENTION_MARKDOWN`.
+    abstained: bool = False
 
 
 class _RecordingLLM:
@@ -310,18 +326,48 @@ def run_query(
             prompt_tokens_after_compression=tokens_after,
         )
 
+    # Provenance is captured from the ordering the answer is actually built
+    # from -- after the memory re-rank and after the retention filter -- and
+    # names the backend underneath that filter. Captured here, before the
+    # abstracts are numbered into a prompt, because the prompt's [N] is a
+    # property of the prompt and this has to survive it.
+    retrieval_source = source_name(retrieval)
+    provenance = provenance_for(top_papers, retrieval_source)
+
     distilled_context = profile.distilled_context if memory_applied else ""
     summary = generate_sourced_summary(
         llm, query, summary_papers,
         distilled_context=distilled_context,
+        provenance=provenance,
         request_id=request_id, session_id=session_id, user_id=user_id,
     )
     _emit(on_stage, "summarize")
+
+    # Grounding runs against `top_papers`, the UNCOMPRESSED set, for the same
+    # reason `check_citations` does: compression must never get to decide what
+    # counts as supported.
+    grounding = check_grounding(summary.markdown, top_papers)
+
     citations = check_citations(
         llm, query, summary.markdown, top_papers, summary.citations,
         request_id=request_id, session_id=session_id, user_id=user_id,
     )
     _emit(on_stage, "citation_check")
+
+    # Abstain rather than serve an answer nothing retrieved supports. The
+    # replacement text is a constant, not a model call: asking the model that
+    # just failed to ground itself to explain that it failed would be one more
+    # ungrounded sentence.
+    abstained = not grounding.answerable
+    if abstained:
+        logger.info(
+            "abstaining: %d records, %d claims, %d grounded",
+            grounding.records_available, grounding.total_claims, grounding.grounded,
+        )
+        summary_markdown = ABSTENTION_MARKDOWN
+        citations = []
+    else:
+        summary_markdown = summary.markdown
 
     if personalize:
         matched_conditions = sorted({sp.paper.condition for sp in top_papers})
@@ -338,7 +384,7 @@ def run_query(
 
     return QueryResult(
         request_id=request_id,
-        summary_markdown=summary.markdown,
+        summary_markdown=summary_markdown,
         citations=citations,
         papers=top_papers,
         trace=trace,
@@ -351,4 +397,7 @@ def run_query(
         ),
         cost=_aggregate_cost(llm.calls),
         policy=policy_info,
+        retrieval_provenance=provenance,
+        grounding=grounding,
+        abstained=abstained,
     )
