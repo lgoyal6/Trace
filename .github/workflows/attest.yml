@@ -65,10 +65,15 @@ jobs:
       # Sorted names, zeroed timestamps and zeroed ownership: without them the
       # tar digest would change on every run for reasons that have nothing to do
       # with the code, and a digest that moves on its own cannot be compared.
+      # .next/cache is the incremental build cache, not shipped output. Leaving
+      # it in would make the attested artifact several hundred megabytes of
+      # bytes nobody deploys, and would move the digest between runs that
+      # produced identical output.
       - name: pack the build output
         run: |
           tar --sort=name --format=posix \
               --mtime='UTC 1970-01-01' --owner=0 --group=0 --numeric-owner \
+              --exclude=./cache \
               -cf trace-frontend-build.tar -C .next .
 
       # The digest the attestation will carry. Printed so the value a verifier
