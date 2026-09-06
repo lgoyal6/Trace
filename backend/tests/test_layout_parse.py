@@ -171,8 +171,9 @@ def test_provenance_survives_a_llamaindex_round_trip(two_column_pdf):
     from the embed/LLM views so the page number cannot leak into the retrieval
     signal itself and flatter the result.
     """
-    pytest.importorskip("llama_index.core", reason="pip install -r backend/requirements-parsing.txt")
-    bm25_mod = pytest.importorskip("llama_index.retrievers.bm25")
+    reason = "pip install llama-index-core llama-index-retrievers-bm25"
+    pytest.importorskip("llama_index.core", reason=reason)
+    bm25_mod = pytest.importorskip("llama_index.retrievers.bm25", reason=reason)
     from llama_index.core.schema import TextNode
 
     chunks = parse_layout_pymupdf(two_column_pdf, "DOC1")
