@@ -1,0 +1,1019 @@
+{
+  "check_latency_ms": {
+    "mean": 0.0575,
+    "n": 400,
+    "p95": 0.1278
+  },
+  "dev": {
+    "best_by_f1": {
+      "accuracy": 0.9935,
+      "f1": 0.9945,
+      "false_negative": 1,
+      "false_positive": 8,
+      "n": 1381,
+      "per_class": {
+        "marker_after": {
+          "accuracy": 1.0,
+          "n": 136,
+          "predicted_grounded": 136
+        },
+        "misattributed": {
+          "accuracy": 1.0,
+          "n": 136,
+          "predicted_grounded": 0
+        },
+        "numeric_flip": {
+          "accuracy": 0.9545,
+          "n": 22,
+          "predicted_grounded": 1
+        },
+        "off_topic": {
+          "accuracy": 1.0,
+          "n": 136,
+          "predicted_grounded": 0
+        },
+        "paraphrase_10": {
+          "accuracy": 1.0,
+          "n": 136,
+          "predicted_grounded": 136
+        },
+        "paraphrase_20": {
+          "accuracy": 1.0,
+          "n": 136,
+          "predicted_grounded": 136
+        },
+        "paraphrase_30": {
+          "accuracy": 1.0,
+          "n": 136,
+          "predicted_grounded": 136
+        },
+        "paraphrase_40": {
+          "accuracy": 0.9926,
+          "n": 136,
+          "predicted_grounded": 135
+        },
+        "same_condition": {
+          "accuracy": 0.9481,
+          "n": 135,
+          "predicted_grounded": 7
+        },
+        "uncited": {
+          "accuracy": 1.0,
+          "n": 136,
+          "predicted_grounded": 0
+        },
+        "verbatim": {
+          "accuracy": 1.0,
+          "n": 136,
+          "predicted_grounded": 136
+        }
+      },
+      "precision": 0.9903,
+      "recall": 0.9988,
+      "skipped": 0,
+      "threshold": 0.55,
+      "true_negative": 557,
+      "true_positive": 815
+    },
+    "cases": 1381,
+    "sweep": [
+      {
+        "accuracy": 0.9855,
+        "f1": 0.9879,
+        "false_negative": 0,
+        "false_positive": 20,
+        "n": 1381,
+        "per_class": {
+          "marker_after": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 136
+          },
+          "misattributed": {
+            "accuracy": 0.9779,
+            "n": 136,
+            "predicted_grounded": 3
+          },
+          "numeric_flip": {
+            "accuracy": 0.9545,
+            "n": 22,
+            "predicted_grounded": 1
+          },
+          "off_topic": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 0
+          },
+          "paraphrase_10": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 136
+          },
+          "paraphrase_20": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 136
+          },
+          "paraphrase_30": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 136
+          },
+          "paraphrase_40": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 136
+          },
+          "same_condition": {
+            "accuracy": 0.8815,
+            "n": 135,
+            "predicted_grounded": 16
+          },
+          "uncited": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 0
+          },
+          "verbatim": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 136
+          }
+        },
+        "precision": 0.9761,
+        "recall": 1.0,
+        "skipped": 0,
+        "threshold": 0.4,
+        "true_negative": 545,
+        "true_positive": 816
+      },
+      {
+        "accuracy": 0.9891,
+        "f1": 0.9909,
+        "false_negative": 0,
+        "false_positive": 15,
+        "n": 1381,
+        "per_class": {
+          "marker_after": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 136
+          },
+          "misattributed": {
+            "accuracy": 0.9853,
+            "n": 136,
+            "predicted_grounded": 2
+          },
+          "numeric_flip": {
+            "accuracy": 0.9545,
+            "n": 22,
+            "predicted_grounded": 1
+          },
+          "off_topic": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 0
+          },
+          "paraphrase_10": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 136
+          },
+          "paraphrase_20": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 136
+          },
+          "paraphrase_30": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 136
+          },
+          "paraphrase_40": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 136
+          },
+          "same_condition": {
+            "accuracy": 0.9111,
+            "n": 135,
+            "predicted_grounded": 12
+          },
+          "uncited": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 0
+          },
+          "verbatim": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 136
+          }
+        },
+        "precision": 0.9819,
+        "recall": 1.0,
+        "skipped": 0,
+        "threshold": 0.45,
+        "true_negative": 550,
+        "true_positive": 816
+      },
+      {
+        "accuracy": 0.9899,
+        "f1": 0.9915,
+        "false_negative": 0,
+        "false_positive": 14,
+        "n": 1381,
+        "per_class": {
+          "marker_after": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 136
+          },
+          "misattributed": {
+            "accuracy": 0.9853,
+            "n": 136,
+            "predicted_grounded": 2
+          },
+          "numeric_flip": {
+            "accuracy": 0.9545,
+            "n": 22,
+            "predicted_grounded": 1
+          },
+          "off_topic": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 0
+          },
+          "paraphrase_10": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 136
+          },
+          "paraphrase_20": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 136
+          },
+          "paraphrase_30": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 136
+          },
+          "paraphrase_40": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 136
+          },
+          "same_condition": {
+            "accuracy": 0.9185,
+            "n": 135,
+            "predicted_grounded": 11
+          },
+          "uncited": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 0
+          },
+          "verbatim": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 136
+          }
+        },
+        "precision": 0.9831,
+        "recall": 1.0,
+        "skipped": 0,
+        "threshold": 0.5,
+        "true_negative": 551,
+        "true_positive": 816
+      },
+      {
+        "accuracy": 0.9935,
+        "f1": 0.9945,
+        "false_negative": 1,
+        "false_positive": 8,
+        "n": 1381,
+        "per_class": {
+          "marker_after": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 136
+          },
+          "misattributed": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 0
+          },
+          "numeric_flip": {
+            "accuracy": 0.9545,
+            "n": 22,
+            "predicted_grounded": 1
+          },
+          "off_topic": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 0
+          },
+          "paraphrase_10": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 136
+          },
+          "paraphrase_20": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 136
+          },
+          "paraphrase_30": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 136
+          },
+          "paraphrase_40": {
+            "accuracy": 0.9926,
+            "n": 136,
+            "predicted_grounded": 135
+          },
+          "same_condition": {
+            "accuracy": 0.9481,
+            "n": 135,
+            "predicted_grounded": 7
+          },
+          "uncited": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 0
+          },
+          "verbatim": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 136
+          }
+        },
+        "precision": 0.9903,
+        "recall": 0.9988,
+        "skipped": 0,
+        "threshold": 0.55,
+        "true_negative": 557,
+        "true_positive": 815
+      },
+      {
+        "accuracy": 0.9689,
+        "f1": 0.9731,
+        "false_negative": 38,
+        "false_positive": 5,
+        "n": 1381,
+        "per_class": {
+          "marker_after": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 136
+          },
+          "misattributed": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 0
+          },
+          "numeric_flip": {
+            "accuracy": 0.9545,
+            "n": 22,
+            "predicted_grounded": 1
+          },
+          "off_topic": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 0
+          },
+          "paraphrase_10": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 136
+          },
+          "paraphrase_20": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 136
+          },
+          "paraphrase_30": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 136
+          },
+          "paraphrase_40": {
+            "accuracy": 0.7206,
+            "n": 136,
+            "predicted_grounded": 98
+          },
+          "same_condition": {
+            "accuracy": 0.9704,
+            "n": 135,
+            "predicted_grounded": 4
+          },
+          "uncited": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 0
+          },
+          "verbatim": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 136
+          }
+        },
+        "precision": 0.9936,
+        "recall": 0.9534,
+        "skipped": 0,
+        "threshold": 0.6,
+        "true_negative": 560,
+        "true_positive": 778
+      },
+      {
+        "accuracy": 0.916,
+        "f1": 0.9236,
+        "false_negative": 115,
+        "false_positive": 1,
+        "n": 1381,
+        "per_class": {
+          "marker_after": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 136
+          },
+          "misattributed": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 0
+          },
+          "numeric_flip": {
+            "accuracy": 0.9545,
+            "n": 22,
+            "predicted_grounded": 1
+          },
+          "off_topic": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 0
+          },
+          "paraphrase_10": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 136
+          },
+          "paraphrase_20": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 136
+          },
+          "paraphrase_30": {
+            "accuracy": 0.9853,
+            "n": 136,
+            "predicted_grounded": 134
+          },
+          "paraphrase_40": {
+            "accuracy": 0.1691,
+            "n": 136,
+            "predicted_grounded": 23
+          },
+          "same_condition": {
+            "accuracy": 1.0,
+            "n": 135,
+            "predicted_grounded": 0
+          },
+          "uncited": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 0
+          },
+          "verbatim": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 136
+          }
+        },
+        "precision": 0.9986,
+        "recall": 0.8591,
+        "skipped": 0,
+        "threshold": 0.65,
+        "true_negative": 564,
+        "true_positive": 701
+      },
+      {
+        "accuracy": 0.8762,
+        "f1": 0.8831,
+        "false_negative": 170,
+        "false_positive": 1,
+        "n": 1381,
+        "per_class": {
+          "marker_after": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 136
+          },
+          "misattributed": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 0
+          },
+          "numeric_flip": {
+            "accuracy": 0.9545,
+            "n": 22,
+            "predicted_grounded": 1
+          },
+          "off_topic": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 0
+          },
+          "paraphrase_10": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 136
+          },
+          "paraphrase_20": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 136
+          },
+          "paraphrase_30": {
+            "accuracy": 0.6912,
+            "n": 136,
+            "predicted_grounded": 94
+          },
+          "paraphrase_40": {
+            "accuracy": 0.0588,
+            "n": 136,
+            "predicted_grounded": 8
+          },
+          "same_condition": {
+            "accuracy": 1.0,
+            "n": 135,
+            "predicted_grounded": 0
+          },
+          "uncited": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 0
+          },
+          "verbatim": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 136
+          }
+        },
+        "precision": 0.9985,
+        "recall": 0.7917,
+        "skipped": 0,
+        "threshold": 0.7,
+        "true_negative": 564,
+        "true_positive": 646
+      },
+      {
+        "accuracy": 0.8291,
+        "f1": 0.8312,
+        "false_negative": 235,
+        "false_positive": 1,
+        "n": 1381,
+        "per_class": {
+          "marker_after": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 136
+          },
+          "misattributed": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 0
+          },
+          "numeric_flip": {
+            "accuracy": 0.9545,
+            "n": 22,
+            "predicted_grounded": 1
+          },
+          "off_topic": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 0
+          },
+          "paraphrase_10": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 136
+          },
+          "paraphrase_20": {
+            "accuracy": 0.9926,
+            "n": 136,
+            "predicted_grounded": 135
+          },
+          "paraphrase_30": {
+            "accuracy": 0.2574,
+            "n": 136,
+            "predicted_grounded": 35
+          },
+          "paraphrase_40": {
+            "accuracy": 0.0221,
+            "n": 136,
+            "predicted_grounded": 3
+          },
+          "same_condition": {
+            "accuracy": 1.0,
+            "n": 135,
+            "predicted_grounded": 0
+          },
+          "uncited": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 0
+          },
+          "verbatim": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 136
+          }
+        },
+        "precision": 0.9983,
+        "recall": 0.712,
+        "skipped": 0,
+        "threshold": 0.75,
+        "true_negative": 564,
+        "true_positive": 581
+      },
+      {
+        "accuracy": 0.7748,
+        "f1": 0.7649,
+        "false_negative": 310,
+        "false_positive": 1,
+        "n": 1381,
+        "per_class": {
+          "marker_after": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 136
+          },
+          "misattributed": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 0
+          },
+          "numeric_flip": {
+            "accuracy": 0.9545,
+            "n": 22,
+            "predicted_grounded": 1
+          },
+          "off_topic": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 0
+          },
+          "paraphrase_10": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 136
+          },
+          "paraphrase_20": {
+            "accuracy": 0.6838,
+            "n": 136,
+            "predicted_grounded": 93
+          },
+          "paraphrase_30": {
+            "accuracy": 0.0368,
+            "n": 136,
+            "predicted_grounded": 5
+          },
+          "paraphrase_40": {
+            "accuracy": 0.0,
+            "n": 136,
+            "predicted_grounded": 0
+          },
+          "same_condition": {
+            "accuracy": 1.0,
+            "n": 135,
+            "predicted_grounded": 0
+          },
+          "uncited": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 0
+          },
+          "verbatim": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 136
+          }
+        },
+        "precision": 0.998,
+        "recall": 0.6201,
+        "skipped": 0,
+        "threshold": 0.8,
+        "true_negative": 564,
+        "true_positive": 506
+      },
+      {
+        "accuracy": 0.714,
+        "f1": 0.6812,
+        "false_negative": 394,
+        "false_positive": 1,
+        "n": 1381,
+        "per_class": {
+          "marker_after": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 136
+          },
+          "misattributed": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 0
+          },
+          "numeric_flip": {
+            "accuracy": 0.9545,
+            "n": 22,
+            "predicted_grounded": 1
+          },
+          "off_topic": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 0
+          },
+          "paraphrase_10": {
+            "accuracy": 0.9926,
+            "n": 136,
+            "predicted_grounded": 135
+          },
+          "paraphrase_20": {
+            "accuracy": 0.1103,
+            "n": 136,
+            "predicted_grounded": 15
+          },
+          "paraphrase_30": {
+            "accuracy": 0.0,
+            "n": 136,
+            "predicted_grounded": 0
+          },
+          "paraphrase_40": {
+            "accuracy": 0.0,
+            "n": 136,
+            "predicted_grounded": 0
+          },
+          "same_condition": {
+            "accuracy": 1.0,
+            "n": 135,
+            "predicted_grounded": 0
+          },
+          "uncited": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 0
+          },
+          "verbatim": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 136
+          }
+        },
+        "precision": 0.9976,
+        "recall": 0.5172,
+        "skipped": 0,
+        "threshold": 0.85,
+        "true_negative": 564,
+        "true_positive": 422
+      },
+      {
+        "accuracy": 0.6669,
+        "f1": 0.6082,
+        "false_negative": 459,
+        "false_positive": 1,
+        "n": 1381,
+        "per_class": {
+          "marker_after": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 136
+          },
+          "misattributed": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 0
+          },
+          "numeric_flip": {
+            "accuracy": 0.9545,
+            "n": 22,
+            "predicted_grounded": 1
+          },
+          "off_topic": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 0
+          },
+          "paraphrase_10": {
+            "accuracy": 0.6176,
+            "n": 136,
+            "predicted_grounded": 84
+          },
+          "paraphrase_20": {
+            "accuracy": 0.0074,
+            "n": 136,
+            "predicted_grounded": 1
+          },
+          "paraphrase_30": {
+            "accuracy": 0.0,
+            "n": 136,
+            "predicted_grounded": 0
+          },
+          "paraphrase_40": {
+            "accuracy": 0.0,
+            "n": 136,
+            "predicted_grounded": 0
+          },
+          "same_condition": {
+            "accuracy": 1.0,
+            "n": 135,
+            "predicted_grounded": 0
+          },
+          "uncited": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 0
+          },
+          "verbatim": {
+            "accuracy": 1.0,
+            "n": 136,
+            "predicted_grounded": 136
+          }
+        },
+        "precision": 0.9972,
+        "recall": 0.4375,
+        "skipped": 0,
+        "threshold": 0.9,
+        "true_negative": 564,
+        "true_positive": 357
+      }
+    ]
+  },
+  "shipped_threshold": 0.55,
+  "shipped_threshold_is_dev_best": true,
+  "split": {
+    "dev_documents": 147,
+    "dev_records": 157,
+    "shared_documents": 0,
+    "split_label": "c25-v1",
+    "test_documents": 165,
+    "test_records": 172
+  },
+  "sweep_thresholds": [
+    0.4,
+    0.45,
+    0.5,
+    0.55,
+    0.6,
+    0.65,
+    0.7,
+    0.75,
+    0.8,
+    0.85,
+    0.9
+  ],
+  "test": {
+    "at_dev_best_threshold": {
+      "accuracy": 0.9975,
+      "f1": 0.9979,
+      "false_negative": 3,
+      "false_positive": 1,
+      "n": 1624,
+      "per_class": {
+        "marker_after": {
+          "accuracy": 1.0,
+          "n": 158,
+          "predicted_grounded": 158
+        },
+        "misattributed": {
+          "accuracy": 1.0,
+          "n": 158,
+          "predicted_grounded": 0
+        },
+        "numeric_flip": {
+          "accuracy": 1.0,
+          "n": 44,
+          "predicted_grounded": 0
+        },
+        "off_topic": {
+          "accuracy": 1.0,
+          "n": 158,
+          "predicted_grounded": 0
+        },
+        "paraphrase_10": {
+          "accuracy": 1.0,
+          "n": 158,
+          "predicted_grounded": 158
+        },
+        "paraphrase_20": {
+          "accuracy": 1.0,
+          "n": 158,
+          "predicted_grounded": 158
+        },
+        "paraphrase_30": {
+          "accuracy": 1.0,
+          "n": 158,
+          "predicted_grounded": 158
+        },
+        "paraphrase_40": {
+          "accuracy": 0.981,
+          "n": 158,
+          "predicted_grounded": 155
+        },
+        "same_condition": {
+          "accuracy": 0.9937,
+          "n": 158,
+          "predicted_grounded": 1
+        },
+        "uncited": {
+          "accuracy": 1.0,
+          "n": 158,
+          "predicted_grounded": 0
+        },
+        "verbatim": {
+          "accuracy": 1.0,
+          "n": 158,
+          "predicted_grounded": 158
+        }
+      },
+      "precision": 0.9989,
+      "recall": 0.9968,
+      "skipped": 0,
+      "threshold": 0.55,
+      "true_negative": 675,
+      "true_positive": 945
+    },
+    "at_shipped_threshold": {
+      "accuracy": 0.9975,
+      "f1": 0.9979,
+      "false_negative": 3,
+      "false_positive": 1,
+      "n": 1624,
+      "per_class": {
+        "marker_after": {
+          "accuracy": 1.0,
+          "n": 158,
+          "predicted_grounded": 158
+        },
+        "misattributed": {
+          "accuracy": 1.0,
+          "n": 158,
+          "predicted_grounded": 0
+        },
+        "numeric_flip": {
+          "accuracy": 1.0,
+          "n": 44,
+          "predicted_grounded": 0
+        },
+        "off_topic": {
+          "accuracy": 1.0,
+          "n": 158,
+          "predicted_grounded": 0
+        },
+        "paraphrase_10": {
+          "accuracy": 1.0,
+          "n": 158,
+          "predicted_grounded": 158
+        },
+        "paraphrase_20": {
+          "accuracy": 1.0,
+          "n": 158,
+          "predicted_grounded": 158
+        },
+        "paraphrase_30": {
+          "accuracy": 1.0,
+          "n": 158,
+          "predicted_grounded": 158
+        },
+        "paraphrase_40": {
+          "accuracy": 0.981,
+          "n": 158,
+          "predicted_grounded": 155
+        },
+        "same_condition": {
+          "accuracy": 0.9937,
+          "n": 158,
+          "predicted_grounded": 1
+        },
+        "uncited": {
+          "accuracy": 1.0,
+          "n": 158,
+          "predicted_grounded": 0
+        },
+        "verbatim": {
+          "accuracy": 1.0,
+          "n": 158,
+          "predicted_grounded": 158
+        }
+      },
+      "precision": 0.9989,
+      "recall": 0.9968,
+      "skipped": 0,
+      "threshold": 0.55,
+      "true_negative": 675,
+      "true_positive": 945
+    },
+    "cases": 1624
+  },
+  "wall_seconds": 1.12
+}
