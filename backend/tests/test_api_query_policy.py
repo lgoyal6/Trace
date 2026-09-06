@@ -66,7 +66,13 @@ class TestPolicyParameter:
     def test_unknown_policy_is_422_not_a_silent_fallback(self, client):
         r = client.post("/query", json=_body(policy="genrous"))
         assert r.status_code == 422
-        assert "unknown retrieval policy" in r.text
+        # The refusal has to name the labels that would have worked. It used to carry
+        # policy_for_label's own "unknown retrieval policy ..." text, raised from a
+        # field_validator; the labels now live in the annotation so that they also
+        # reach the published contract, and pydantic writes the message. Asserting on
+        # the two labels rather than on either wording is what makes this test about
+        # the behaviour and not about which layer produced it.
+        assert "tight" in r.text and "generous" in r.text, r.text
 
     def test_empty_policy_string_is_rejected(self, client):
         assert client.post("/query", json=_body(policy="")).status_code == 422

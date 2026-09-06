@@ -11,6 +11,7 @@ import logging
 from fastapi import APIRouter, Request
 from pydantic import BaseModel
 
+from backend.api.contract_errors import UNPARSEABLE_BODY
 from backend.api.limiter import limiter
 from backend.snowflake.analyst import CortexAnalyst
 from backend.snowflake.session import get_session, snowflake_available
@@ -158,7 +159,7 @@ def economics_request(request_id: str) -> EconomicsRequestOut:
         return empty
 
 
-@router.post("/ask", response_model=EconomicsAskOut)
+@router.post("/ask", response_model=EconomicsAskOut, responses=UNPARSEABLE_BODY)
 @limiter.limit("6/minute")
 def economics_ask(request: Request, body: EconomicsAskRequest) -> EconomicsAskOut:
     analyst = CortexAnalyst()

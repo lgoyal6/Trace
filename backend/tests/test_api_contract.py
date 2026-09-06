@@ -185,12 +185,10 @@ def test_memory_profile_response_validates():
 
 
 def test_atlas_query_returns_html():
-    """Known gap, recorded rather than asserted both ways: the three /atlas
-    routes really do return text/html, but they declare no `response_class`, so
-    FastAPI documents an application/json response with an empty schema and a
-    client generated from that spec is told to parse HTML as JSON. Declaring
-    `response_class=HTMLResponse` fixes it and regenerates .openapi.json /
-    api-types.ts; that regeneration is not done here."""
+    """The gap this used to record as known is closed; see
+    backend/tests/test_api_schemathesis_regressions.py, which asserts the
+    document half as well. Kept here because this file is where a reader looks
+    for what the route really answers."""
     response = client.get("/atlas/query", params={"conditions": ""})
     assert response.status_code == 200
     assert response.headers["content-type"].startswith("text/html")

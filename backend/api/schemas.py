@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from typing import Literal
+
+from pydantic import BaseModel, ConfigDict, Field, StrictBool
 from pydantic.alias_generators import to_camel
 
 
@@ -12,25 +14,25 @@ class QueryRequest(BaseModel):
     query: str = Field(min_length=1, max_length=500)
     session_id: str
     user_id: str
-    personalize: bool = False
+    # StrictBool, not bool. Pydantic coerces int to bool outside strict mode, so
+    # `{"personalize": 0}` was accepted and ran the un-personalized arm while the
+    # contract declared a boolean; a client that sent a count by mistake got a 200 and
+    # a quietly different answer. The corpus does send `personalize: "yes"`, which is
+    # refused, so the field looked covered - a string is not the coercion that fires.
+    personalize: StrictBool = False
 
-    # Retrieval policy by label ("tight" | "generous"), per
-    # backend/app/retrieval/policy.py. Omitted/null keeps today's exact
-    # behaviour (RETRIEVAL_TOP_K papers, no compression), so every existing
-    # caller is unaffected. An unknown label is a 422, never a silent
-    # fallback -- a demo that quietly runs the wrong arm is worse than one
-    # that errors.
-    policy: str | None = None
-
-    @field_validator("policy")
-    @classmethod
-    def _known_policy(cls, v: str | None) -> str | None:
-        if v is None:
-            return None
-        from backend.app.retrieval.policy import policy_for_label
-
-        policy_for_label(v)  # raises ValueError -> 422
-        return v
+    # Retrieval policy by label, per backend/app/retrieval/policy.py. Omitted/null
+    # keeps today's exact behaviour (RETRIEVAL_TOP_K papers, no compression), so every
+    # existing caller is unaffected. An unknown label is a 422, never a silent
+    # fallback -- a demo that quietly runs the wrong arm is worse than one that errors.
+    #
+    # The labels are in the annotation rather than in a validator so that they reach
+    # the published document as an enum. Declared as a bare `str | None`, the contract
+    # said any string was acceptable while the service refused all but two, and a
+    # client had no way to discover which two short of reading the source.
+    # backend/tests/test_api_schemathesis_regressions.py pins this list to
+    # policy._BY_LABEL so the two cannot drift apart.
+    policy: Literal["tight", "generous"] | None = None
 
 
 class PaperOut(CamelModel):
