@@ -88,6 +88,50 @@ def _api_key() -> str:
     return os.environ.get("EVEROS_API_KEY") or os.environ.get("EVEROS_CLOUD_API_KEY") or ""
 
 
+# --- transport policy -------------------------------------------------------
+#
+# Every call below sends `Authorization: Bearer <key>`, and the plain
+# `urllib.request.urlopen` this used to call follows up to 10 redirects while
+# `HTTPRedirectHandler.redirect_request` copies every header except
+# content-length/content-type onto the new target. So a 302 from EVEROS_BASE_URL
+# handed the API key to whoever wrote the Location header. Two guards, both
+# small, neither of which needs `safe_http.fetch` (which is GET-only and cannot
+# carry these POSTs):
+#
+#   1. no redirects at all. This client talks to one configured host; a
+#      redirect is not a feature it needs, and refusing is strictly safer than
+#      re-checking each hop.
+#   2. the destination is checked against safe_http's address policy before
+#      the request is written, so an EVEROS_BASE_URL pointing into private
+#      space does not get the key either.
+
+
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    """Refuse every redirect rather than re-sending the bearer token."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):  # noqa: D102
+        return None
+
+
+def _no_redirect_opener() -> urllib.request.OpenerDirector:
+    return urllib.request.build_opener(_NoRedirect)
+
+
+def _destination_allowed(url: str) -> bool:
+    """safe_http's scheme + resolved-address policy, without its transport."""
+    try:
+        from backend.app.net.safe_http import FetchPolicyError, assert_destination_allowed
+    except ImportError:  # pragma: no cover - standalone staging use
+        return True
+    try:
+        assert_destination_allowed(url)
+        return True
+    except FetchPolicyError:
+        return False
+    except Exception:
+        return False
+
+
 def _scope() -> dict:
     return {
         "app_id": os.environ.get("EVEROS_APP_ID", "default"),
@@ -127,11 +171,13 @@ class EverOSMemory:
             "Authorization": f"Bearer {key}",
         }
         body = json.dumps({**_scope(), **payload}).encode()
-        req = urllib.request.Request(
-            f"{_base_url()}{path}", data=body, headers=headers, method="POST"
-        )
+        url = f"{_base_url()}{path}"
+        if not _destination_allowed(url):
+            self._remote_errors += 1
+            return None
+        req = urllib.request.Request(url, data=body, headers=headers, method="POST")
         try:
-            with urllib.request.urlopen(req, timeout=_TIMEOUT_SECONDS) as resp:
+            with _no_redirect_opener().open(req, timeout=_TIMEOUT_SECONDS) as resp:
                 return json.loads(resp.read().decode() or "{}")
         except (urllib.error.URLError, urllib.error.HTTPError, ValueError, OSError):
             # Degrade silently to the local mirror. A dead memory service must
