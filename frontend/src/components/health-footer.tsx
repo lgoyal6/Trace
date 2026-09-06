@@ -20,7 +20,9 @@ export function HealthFooter() {
 
   return (
     <footer className="flex flex-wrap items-center justify-between gap-4 border-t border-rule px-6 py-[26px] md:px-16">
-      <div className="flex flex-wrap gap-6" aria-label="Backend health">
+      {/* A bare div takes no accessible name, so the label was being dropped.
+          The role is what lets it carry one. */}
+      <div aria-label="Backend health" className="flex flex-wrap gap-6" role="group">
         {PORTS.map(({ key, label }) => {
           const port = health?.ports[key];
           const ok = port?.ok === true;
@@ -33,6 +35,11 @@ export function HealthFooter() {
               />
               <span className={`font-body text-xs ${!health ? "text-dim" : ok ? "text-ink" : "text-warn"}`}>
                 {label}
+                {/* The dot's colour is the only thing that says whether this
+                    port is up. Say it in words too. */}
+                <span className="sr-only">
+                  {!health ? ", status unknown" : ok ? ", healthy" : ", degraded"}
+                </span>
               </span>
               {port?.detail && (
                 <span className={`font-data text-xs ${ok ? "text-dim" : "text-warn"}`}>{port.detail}</span>

@@ -10,7 +10,10 @@ type Props = {
 export function SectionRail({ number, eyebrow, className }: Props) {
   return (
     <div className={`flex items-center gap-3 ${className ?? ""}`}>
-      <span className="font-data text-xs text-blue-500">{number}</span>
+      {/* --blue-500 is 2.88:1 on white and MASTER.md 2.1 rules it out for text.
+          The number is 12px mono, so it takes the text blue like the eyebrow
+          beside it. */}
+      <span className="font-data text-xs text-blue-700">{number}</span>
       <span className="h-px w-7 bg-blue-300" aria-hidden="true" />
       <span className="eyebrow">{eyebrow}</span>
     </div>

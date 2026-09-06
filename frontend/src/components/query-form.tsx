@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { queryLiteratureStream, type QueryResult, type RetrievalPolicy } from "@/lib/api";
 import { SectionRail } from "@/components/section-rail";
-import { ProgressTimeline, type ProgressStageEvent } from "@/components/progress-timeline";
+import { ProgressTimeline, stageMessage, type ProgressStageEvent } from "@/components/progress-timeline";
 import { PolicyToggle } from "@/components/retrieval-policy";
 
 type Props = {
@@ -64,13 +64,22 @@ export function QueryForm({ onResult, onCurrentQueryChange }: Props) {
         </h2>
       </div>
 
-      <form onSubmit={handleSubmit} className="border border-rule bg-white shadow-[var(--shadow-input)]">
+      <form aria-busy={status === "loading"} onSubmit={handleSubmit} className="border border-rule bg-white shadow-[var(--shadow-input)]">
+        {/* The placeholder is an example, not a name: it disappears the moment
+            anything is typed, so the field needs a label of its own. It is
+            visually hidden because the section heading already says this in
+            display type. */}
+        <label className="sr-only" htmlFor="query-input">
+          Describe the finding
+        </label>
         <textarea
+          aria-describedby={status === "error" ? "query-error query-hint" : "query-hint"}
           value={query}
+          id="query-input"
           onChange={(event) => handleQueryChange(event.target.value)}
           placeholder="asymmetric parietal hypometabolism on FDG-PET with progressive apraxia"
           rows={3}
-          className="w-full resize-none bg-transparent px-[26px] pb-3 pt-[26px] font-body text-lg leading-[1.5] text-ink outline-none placeholder:text-dim"
+          className="w-full resize-none bg-transparent px-[26px] pb-3 pt-[26px] font-body text-lg leading-[1.5] text-ink outline-none focus-visible:[outline-style:solid] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-blue-700 placeholder:text-dim"
           disabled={status === "loading"}
         />
         <div className="border-t border-rule px-[26px] py-3.5">
@@ -100,13 +109,23 @@ export function QueryForm({ onResult, onCurrentQueryChange }: Props) {
           </button>
         </div>
         {status === "loading" && <ProgressTimeline stages={stages} />}
+        {/* Mounted at all times. A live region that appears together with its
+            first message is usually announced by nothing, because there was no
+            region to observe when the text arrived. */}
+        <p aria-live="polite" className="sr-only" role="status">
+          {status === "loading" ? stageMessage(stages) : ""}
+        </p>
         {status === "error" && (
-          <p className="border-t border-warn bg-warn-bg px-[26px] py-4 font-body text-sm text-warn">
+          <p
+            className="border-t border-warn bg-warn-bg px-[26px] py-4 font-body text-sm text-warn"
+            id="query-error"
+            role="alert"
+          >
             Retrieval degraded. The backend did not respond. Confirm it is running and try again.
           </p>
         )}
       </form>
-      <p className="mt-4 font-body text-[13px] text-dim">
+      <p className="mt-4 font-body text-[13px] text-dim" id="query-hint">
         Name a scan type, a symptom, or a region. First request after idle takes 4–8 s while the retrieval
         index warms.
       </p>

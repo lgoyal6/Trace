@@ -112,14 +112,17 @@ export function EconomyDashboard() {
   return (
     <div>
       <header className="flex items-center justify-between border-b border-rule px-6 py-5 md:px-16">
-        <span className="flex items-center gap-3">
-          <span className="h-[22px] w-[22px] rounded-[4px] bg-blue-500" />
+        {/* The lockup is this page's title and there was no h1 at all. The
+            type sizes live on the inner spans, so the tag change is invisible. */}
+        <h1 className="flex items-center gap-3">
+          <span aria-hidden="true" className="h-[22px] w-[22px] rounded-[4px] bg-blue-500" />
           <span className="font-display text-xl font-semibold text-ink">Trace</span>
           <span className="font-data text-sm text-dim">/cost</span>
-        </span>
-        <div className="flex gap-[3px] border border-rule p-[3px]">
+        </h1>
+        <div aria-label="Ledger window" className="flex gap-[3px] border border-rule p-[3px]" role="group">
           {WINDOWS.map(([value, label]) => (
             <button
+              aria-pressed={window === value}
               key={value}
               type="button"
               onClick={() => {
@@ -138,7 +141,9 @@ export function EconomyDashboard() {
       </header>
 
       <div className="mx-auto max-w-[1440px] px-6 py-14 md:px-16">
-        {summaryError && <p className="mb-6 font-body text-sm text-warn">Ledger summary is unavailable.</p>}
+        {summaryError && (
+          <p className="mb-6 font-body text-sm text-warn" role="alert">Ledger summary is unavailable.</p>
+        )}
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.35fr_1fr]">
           <div
@@ -150,7 +155,9 @@ export function EconomyDashboard() {
           >
             <p className="eyebrow">Median cost per query</p>
             <p className="mt-1 font-data text-[11px] text-dim">
-              n = {summary?.total_requests ?? 0} requests · Last {window}
+              {/* Before the ledger answers there is no n. Printing 0 asserts
+                  something the page does not know yet. */}
+              n = {summary ? summary.total_requests : "-"} requests · Last {window}
             </p>
 
             {summary ? (
@@ -163,6 +170,13 @@ export function EconomyDashboard() {
                   contract - see Blockers.md.
                 </p>
               </>
+            ) : summaryError ? (
+              // Without this branch a failed fetch left the card reading
+              // "Loading ledger." underneath the error banner, for good.
+              <p className="mt-6 font-body text-sm text-warn">
+                The ledger did not answer, so the figures below are unknown rather than zero. Pick a
+                window again to retry.
+              </p>
             ) : (
               <p className="mt-6 font-body text-sm text-dim">Loading ledger.</p>
             )}
@@ -227,10 +241,13 @@ export function EconomyDashboard() {
             ))}
           </div>
           <form onSubmit={submitQuestion} className="flex flex-col gap-3 sm:flex-row">
+            <label className="sr-only" htmlFor="ledger-question">Ask the ledger a question</label>
             <input
+              aria-describedby={askError ? "ledger-error" : undefined}
               value={question}
+              id="ledger-question"
               onChange={(event) => setQuestion(event.target.value)}
-              className="min-w-0 flex-1 rounded-[3px] border border-rule px-4 py-3 font-body text-ink outline-none focus:border-blue-300"
+              className="min-w-0 flex-1 rounded-[3px] border border-rule px-4 py-3 font-body text-ink outline-none focus-visible:border-blue-300 focus-visible:[outline-style:solid] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-blue-700"
             />
             <button
               disabled={asking || !question.trim()}
@@ -239,7 +256,14 @@ export function EconomyDashboard() {
               {asking ? "Asking…" : "Ask"}
             </button>
           </form>
-          {askError && <p className="mt-4 font-body text-sm text-warn">Cortex Analyst is unavailable.</p>}
+          {askError && (
+            <p className="mt-4 font-body text-sm text-warn" id="ledger-error" role="alert">
+              Cortex Analyst is unavailable.
+            </p>
+          )}
+          <p aria-live="polite" className="sr-only" role="status">
+            {asking ? "Asking the ledger." : ""}
+          </p>
           {answer && (
             <div className="mt-6 grid gap-5">
               <p className="border-l-2 border-blue-500 pl-4 font-display text-[27px] text-ink">{answer.answer}</p>
@@ -249,7 +273,7 @@ export function EconomyDashboard() {
                     <thead>
                       <tr>
                         {rowKeys.map((key) => (
-                          <th key={key} className="border-b border-rule p-3 text-left font-data text-xs text-dim">
+                          <th key={key} scope="col" className="border-b border-rule p-3 text-left font-data text-xs text-dim">
                             {key}
                           </th>
                         ))}
