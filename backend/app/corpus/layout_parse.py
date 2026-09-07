@@ -31,9 +31,10 @@ because that is the split the C31 comparison turns on.
 """
 from __future__ import annotations
 
+import hashlib
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
-import re
 
 #: A chunk kind. "table" and "caption" only ever come from a layout-aware
 #: parser; the naive parsers cannot tell them apart from body prose.
@@ -206,6 +207,82 @@ def parse_abstract_only(doc_id: str, title: str, abstract: str) -> list[DocChunk
                  text=piece, parser="abstract_only")
         for i, piece in enumerate(window(text))
     ]
+
+
+def parse_layout_llamaparse(
+    pdf_path: Path, doc_id: str, *, client=None
+) -> list[DocChunk]:
+    """Parse a PDF with the named LlamaParse service and retain its page metadata.
+
+    The dependency and credential are loaded only on this path. A client can be
+    injected for contract tests, but the default is the real `llama_parse.LlamaParse`
+    SDK. Current clients return a JobResult from ``parse``; its page documents
+    and job id are authoritative. Injected and older clients that expose only
+    ``load_data`` remain supported. If the service omits a page number, page
+    remains 0 rather than inventing provenance.
+    """
+    pdf_path = Path(pdf_path)
+    if not pdf_path.is_file() or pdf_path.suffix.lower() != ".pdf":
+        raise ValueError("LlamaParse input must be an existing PDF file")
+    if client is None:
+        import os
+
+        from llama_parse import LlamaParse
+
+        api_key = os.environ.get("LLAMA_CLOUD_API_KEY")
+        if not api_key:
+            raise RuntimeError("LLAMA_CLOUD_API_KEY is required for LlamaParse")
+        client = LlamaParse(
+            api_key=api_key,
+            result_type="markdown",
+            split_by_page=True,
+            verbose=False,
+        )
+    source_sha256 = hashlib.sha256(pdf_path.read_bytes()).hexdigest()
+    parse = getattr(client, "parse", None)
+    if callable(parse):
+        parsed = parse(str(pdf_path))
+        job_results = parsed if isinstance(parsed, (list, tuple)) else [parsed]
+        if not all(
+            callable(getattr(result, "get_markdown_documents", None))
+            for result in job_results
+        ):
+            raise RuntimeError("LlamaParse parse() returned no JobResult objects")
+        documents_with_jobs = [
+            (document, getattr(result, "job_id", None))
+            for result in job_results
+            for document in result.get_markdown_documents(split_by_page=True)
+        ]
+    else:
+        documents_with_jobs = [
+            (document, None) for document in client.load_data(str(pdf_path))
+        ]
+    chunks: list[DocChunk] = []
+    for document_index, (document, job_id) in enumerate(documents_with_jobs):
+        metadata = dict(getattr(document, "metadata", {}) or {})
+        raw_page = metadata.get("page_number", metadata.get("page_label", 0))
+        try:
+            page = int(raw_page)
+        except (TypeError, ValueError):
+            page = 0
+        text = getattr(document, "text", None)
+        if text is None and hasattr(document, "get_content"):
+            text = document.get_content()
+        for block_index, piece in enumerate(window(text or "")):
+            chunks.append(DocChunk(
+                doc_id=doc_id,
+                page=page,
+                block_index=block_index,
+                kind="body",
+                text=piece,
+                parser="llamaparse",
+                meta={
+                    "source_sha256": source_sha256,
+                    "parser_document_index": document_index,
+                    "llamaparse_job_id": job_id or metadata.get("job_id"),
+                },
+            ))
+    return chunks
 
 
 # ---------------------------------------------------------------------------
