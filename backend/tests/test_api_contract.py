@@ -26,6 +26,8 @@ from backend.contracts.registry import get_services
 client = TestClient(app)
 SPEC_PATH = Path(__file__).resolve().parent.parent.parent / "frontend" / ".openapi.json"
 COMMITTED_SPEC = json.loads(SPEC_PATH.read_text())
+V1_SPEC_PATH = Path(__file__).resolve().parent / "fixtures" / "openapi_v1.json"
+V1_SPEC = json.loads(V1_SPEC_PATH.read_text())
 
 DEMO_QUERY = "localized hypermetabolic uptake pattern on brain imaging"
 DOCUMENTED_STATUSES = {200, 204, 400, 404, 405, 415, 422, 429}
@@ -119,6 +121,12 @@ def _response_schema(path: str, method: str) -> dict | None:
     return content.get("application/json", {}).get("schema")
 
 
+def _response_schema_from(spec: dict, path: str, method: str) -> dict | None:
+    op = spec["paths"][path][method]
+    content = op.get("responses", {}).get("200", {}).get("content", {})
+    return content.get("application/json", {}).get("schema")
+
+
 # -- the spec itself ----------------------------------------------------------
 
 def test_committed_openapi_spec_matches_the_app():
@@ -167,6 +175,34 @@ def test_query_response_validates_against_the_documented_schema():
     assert response.status_code == 200
     errors = validate(response.json(), _response_schema("/query", "post"), COMMITTED_SPEC)
     assert errors == []
+
+
+def test_previous_generated_client_contract_reads_the_current_query_response():
+    """The retained v1 OpenAPI document was the input to the generated
+    TypeScript types at commit 234467d. A response from today's server must
+    still satisfy that exact old response contract after additive changes."""
+    response = client.post("/query", json={
+        "query": DEMO_QUERY, "session_id": "s-v1", "user_id": "u-v1",
+        "personalize": True,
+    })
+    assert response.status_code == 200
+    old_schema = _response_schema_from(V1_SPEC, "/query", "post")
+    assert old_schema is not None
+    assert validate(response.json(), old_schema, V1_SPEC) == []
+
+
+def test_previous_client_contract_rejects_a_removed_required_field():
+    """Negative control for the old-client gate: a server that removes a v1
+    field is reported as breaking rather than accepted as an additive change."""
+    response = client.post("/query", json={
+        "query": DEMO_QUERY, "session_id": "s-v1-negative", "user_id": "u-v1-negative",
+        "personalize": True,
+    })
+    broken = response.json()
+    broken.pop("summary_markdown")
+    old_schema = _response_schema_from(V1_SPEC, "/query", "post")
+    errors = validate(broken, old_schema, V1_SPEC)
+    assert "$.summary_markdown: required but missing" in errors
 
 
 @pytest.mark.parametrize("path", ["/conditions", "/demo-contrast", "/health"])
