@@ -146,6 +146,27 @@ source .venv/bin/activate
 python -m pip install -r requirements.txt
 ```
 
+One further set is deliberately kept out of `requirements.txt`: layout-aware PDF
+parsing. The API request path never parses a PDF and the wheels are large, so it
+is opt-in, but it is what `backend/tests/test_layout_parse.py` needs, including
+the LlamaIndex round trip that checks page provenance survives that framework's
+own node and retriever types:
+
+```bash
+python -m pip install -r backend/requirements-parsing.txt
+```
+
+The suite is plain `pytest` from the repository root, and the optional set is
+the whole difference between the two counts you can get:
+
+| install | `pytest` |
+|---|---|
+| `requirements.txt` only | 490 passed, 6 skipped |
+| `+ backend/requirements-parsing.txt` | **506 passed, 5 skipped** |
+
+The five remaining skips are deliberate and each says why: four opt-in live
+Snowflake tests, and `test_multiturn_session.py`, which points at `Blockers.md`.
+
 Start the credential-free backend profile:
 
 ```bash
