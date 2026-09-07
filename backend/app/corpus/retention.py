@@ -358,6 +358,41 @@ def snowflake_purge_statements(log: TombstoneLog) -> list[tuple[str, list]]:
     return statements
 
 
+def execute_snowflake_purge(log: TombstoneLog, *, session=None) -> dict:
+    """Execute the generated purge and verify the base table no longer serves it.
+
+    The caller must deliberately supply a live session or configure the normal
+    Snowflake session environment. This function does not silently downgrade to
+    statement generation.
+    """
+    if session is None:
+        from backend.snowflake.session import get_session
+        session = get_session()
+    if session is None:
+        raise RuntimeError("Snowflake session unavailable; purge was not executed")
+    statements = snowflake_purge_statements(log)
+    for sql, params in statements:
+        session.sql(sql, params=params).collect()
+    deleted = sorted(log.deleted_pmids())
+    remaining = 0
+    if deleted:
+        placeholders = ",".join("?" for _ in deleted)
+        rows = session.sql(
+            f"SELECT COUNT(*) FROM NEULIT.CORE.PAPERS WHERE PMID IN ({placeholders})",
+            params=deleted,
+        ).collect()
+        remaining = int(rows[0][0]) if rows else 0
+    if remaining:
+        raise RuntimeError(f"Snowflake purge verification failed: {remaining} deleted rows remain")
+    return {
+        "statements_executed": len(statements),
+        "deleted_pmids": len(deleted),
+        "redacted_pmids": len(log.redacted_pmids()),
+        "remaining_deleted_rows": remaining,
+        "index_refresh_requested": bool(statements),
+    }
+
+
 _SEARCH_SERVICE_REFRESH = (
     "ALTER CORTEX SEARCH SERVICE NEULIT.CORE.PAPERS_SEARCH REFRESH"
 )
