@@ -156,6 +156,10 @@ own node and retriever types:
 python -m pip install -r backend/requirements-parsing.txt
 ```
 
+The local parsers remain the credential-free default. The optional hosted
+LlamaParse adapter and its evaluated Cortex Search path are documented in
+[`backend/snowflake/LAYOUT_RETRIEVAL.md`](backend/snowflake/LAYOUT_RETRIEVAL.md).
+
 The suite is plain `pytest` from the repository root, and the optional set is
 the whole difference between the two counts you can get:
 
