@@ -40,12 +40,12 @@ from backend.app.corpus.provenance import (
     record_hash,
 )
 from backend.app.corpus.retention import (
+    BACKUP_STORES,
     DELETE,
     REDACT,
     REDACTION_PLACEHOLDER,
-    BACKUP_STORES,
-    RetentionFilteredRetrieval,
     TOMBSTONE_PATH_ENV,
+    RetentionFilteredRetrieval,
     TombstoneLog,
     active_log,
     delete_record,
@@ -482,6 +482,26 @@ def test_no_purge_statements_when_nothing_is_tombstoned():
     assert snowflake_purge_statements(TombstoneLog()) == []
 
 
+def test_execute_snowflake_purge_runs_and_verifies_bound_deletion():
+    from backend.app.corpus.retention import execute_snowflake_purge
+
+    class Session:
+        def __init__(self): self.calls = []
+        def sql(self, sql, params=None):
+            self.calls.append((sql, params or []))
+            rows = [(0,)] if sql.startswith("SELECT COUNT") else []
+            return type("Result", (), {"collect": lambda self: rows})()
+
+    log = TombstoneLog()
+    log.add("111", DELETE, "subject request")
+    session = Session()
+    receipt = execute_snowflake_purge(log, session=session)
+    assert receipt["remaining_deleted_rows"] == 0
+    assert receipt["index_refresh_requested"] is True
+    assert any("ALTER CORTEX SEARCH SERVICE" in sql for sql, _ in session.calls)
+    assert all("111" not in sql for sql, _ in session.calls)
+
+
 # -- backups, stated separately ---------------------------------------------
 
 
@@ -527,7 +547,7 @@ def test_receipt_marks_the_snowflake_purge_as_pending_not_done(tmp_path):
 
 
 def test_deleting_a_record_removes_its_provenance_row(tmp_path):
-    records = _build_once(tmp_path, raw=FIXTURE_XML)
+    _build_once(tmp_path, raw=FIXTURE_XML)
     manifest_path = tmp_path / "corpus_manifest.json"
     assert Manifest.load(manifest_path).provenance_for("1") is not None
 
