@@ -5,3 +5,11 @@
 #     pip install -r backend/requirements-parsing.txt
 pymupdf>=1.24
 pdfplumber>=0.11
+
+# C31 names LlamaIndex, and test_layout_parse.py's provenance round trip runs
+# the parsed chunks through that framework's own node and retriever types
+# rather than only the in-repo retriever. Same file, same opt-in, so they live
+# here: without them that one test skips and the suite is a test short of its
+# real count. Nothing on the API request path imports either package.
+llama-index-core>=0.11
+llama-index-retrievers-bm25>=0.3
