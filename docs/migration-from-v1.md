@@ -24,6 +24,6 @@ The credential-free v2 baseline measured recall@10 of 0.60 overall and 0.67 for 
 
 ## Added
 
-- Cortex Search, Cortex COMPLETE, the token ledger, and Cortex Analyst.
+- Cortex Search, Cortex COMPLETE, the token ledger, and a guarded Analyst API surface whose dedicated REST adapter remains unimplemented.
 - EverOS profile, thread, deduplication, and bounded memory re-ranking.
 - Honest UI states for independent dependency degradation.

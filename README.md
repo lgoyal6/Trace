@@ -23,18 +23,20 @@ NeuLitTrace is not a diagnostic device, a substitute for clinical judgment, or a
 3. Memory applies a bounded re-rank so prior work can help without outranking rarity.
 4. Cortex COMPLETE runs the applicable calls across six named inference call sites and produces a sourced summary.
 5. Each inference call writes a priced row to `TOKEN_LEDGER`.
-6. The economy view aggregates spend by step and hour; Cortex Analyst answers questions about those records.
+6. The economy view aggregates spend by step and hour. The staged `/economics/ask` endpoint degrades cleanly; real Cortex Analyst answers still require the dedicated REST integration.
 7. The thread and distilled profile are updated for the next query.
 
 The backend exposes retrieval, inference, memory, and ledger through separate ports. A memory or ledger outage therefore degrades one capability instead of collapsing the whole request.
 
 ## Snowflake integration
 
-Snowflake provides corpus retrieval through Cortex Search, inference through Cortex COMPLETE, per-call economics in `TOKEN_LEDGER`, aggregate economics views, and a Cortex Analyst surface. The UI shows values returned by the ledger rather than substituting benchmark claims.
+Snowflake provides corpus retrieval through Cortex Search, inference through Cortex COMPLETE, per-call economics in `TOKEN_LEDGER`, and aggregate economics views. Trace exposes an Analyst-shaped API surface, but the live gate showed that its current COMPLETE-based call is invalid; dedicated Cortex Analyst REST integration remains unimplemented. The UI shows values returned by the ledger rather than substituting benchmark claims.
 
 The credential-free measurement gate used 28 queries and 280 abstracts: extractive selection reduced estimated context tokens from 64,947 to 42,401 (34.71%), while a representative summary-shaped cost calculation moved from $0.009000 to $0.00775044 (13.88% compression-only). A deliberately synthetic repeat exercise produced 28 cache hits and 28 misses. These verify the local compression, cache, and pricing code paths; they are not live Snowflake consumption or an organic cache-rate claim.
 
 The live account gate verified 329 papers, 14 conditions, 10 rare conditions, an active Cortex Search service over all 329 rows, a successful `claude-sonnet-4-5` COMPLETE call, and ledger read-back for both successful and degraded calls. Three of four Tier-2 live tests passed; the failing test confirms that the current Analyst call shape is not valid and must move to the dedicated Cortex Analyst REST API.
+
+A later page-provenance gate ran LlamaParse 0.6.94 on 16 chunks across four pages. It scored 3/4 top-1 and 0.875 MRR, so Trace retained the local layout parser, which scored 4/4 and 1.0 MRR. Fifteen selected-parser chunks then ran through live Cortex Search at 4/4 top-1 and 373.066 ms p95; a bound purge removed all 15 base rows and the first post-refresh Search check returned no indexed result.
 
 ## EverMind integration
 
@@ -44,7 +46,7 @@ EverMind stores a researcher profile and query thread, including specialty, expl
 
 - Next.js 16, React 19, TypeScript, Tailwind CSS
 - FastAPI with an OpenAPI-generated frontend client contract
-- Snowflake Cortex Search, Cortex COMPLETE, Cortex Analyst, and token-ledger views
+- Snowflake Cortex Search, Cortex COMPLETE, token-ledger views, and a staged Analyst API contract
 - EverMind / EverOS memory
 - VitePress documentation and D2 diagram sources
 
@@ -129,7 +131,7 @@ Every exit from `chat()` writes exactly one row. The cache hit writes its own be
 
 ## Quickstart
 
-Needs Python 3.11 or newer and Node 20 or newer. Nothing here needs a Snowflake
+Needs Python 3.12 or newer and Node 20 or newer. Nothing here needs a Snowflake
 account, an EverMind key, or a `.env` file: the `fake` profile serves the same
 329-paper corpus from `backend/data/corpus.json` through the same pipeline, so
 retrieval, the citation check, memory and the token ledger all run end to end
@@ -160,16 +162,17 @@ The local parsers remain the credential-free default. The optional hosted
 LlamaParse adapter and its evaluated Cortex Search path are documented in
 [`backend/snowflake/LAYOUT_RETRIEVAL.md`](backend/snowflake/LAYOUT_RETRIEVAL.md).
 
-The suite is plain `pytest` from the repository root, and the optional set is
-the whole difference between the two counts you can get:
+The suite is plain `pytest` from the repository root. The base install has a
+fresh clean-clone result of:
 
 | install | `pytest` |
 |---|---|
-| `requirements.txt` only | 490 passed, 6 skipped |
-| `+ backend/requirements-parsing.txt` | **506 passed, 5 skipped** |
+| `requirements.txt` only | 499 passed, 6 skipped |
+| `+ backend/requirements-parsing.txt` | additional layout-parser and LlamaIndex tests enabled |
 
-The five remaining skips are deliberate and each says why: four opt-in live
-Snowflake tests, and `test_multiturn_session.py`, which points at `Blockers.md`.
+In the base install, one skip is the optional layout-parser module. The other
+five are deliberate and each says why: four opt-in live Snowflake tests, and
+`test_multiturn_session.py`, which points at `Blockers.md`.
 
 Start the credential-free backend profile:
 
@@ -237,7 +240,7 @@ npm run docs:dev
 - **Memory is bounded and optional:** the re-rank cap deliberately limits personalization. Future evaluation should measure whether different caps improve relevance without creating filter bubbles.
 - **Economics depend on the ledger:** when the ledger is unavailable, answers still render but cost is marked unavailable. Future work should add durable retry and reconciliation.
 - **Live economics validation is partial:** row counts, Search, COMPLETE, ledger insert/read-back, and a full query were exercised. The measurement gate was not rerun against live traffic, account billing rates remain unreconciled, and real Analyst answers still require the dedicated REST integration.
-- **Least privilege is not finished:** the live setup used an `ACCOUNTADMIN`-scoped personal access token for hackathon validation. Deployment must rotate it and run the application under `NEULIT_APP`.
+- **No live deployment remains:** the bounded validation used an `ACCOUNTADMIN`-scoped personal access token to create temporary objects, then dropped its Cortex service, table, schema, and warehouse. A future deployment must use a fresh credential under `NEULIT_APP`.
 - **Not clinical advice:** summaries can be incomplete or wrong despite citation checks. A clinician must review every source.
 
 ## Documentation

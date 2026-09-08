@@ -6,7 +6,7 @@ title: Token Economy
 
 ![One query becomes six ledger events](/diagrams/token-ledger.svg)
 
-Every Cortex COMPLETE invocation records call site, prompt and completion tokens, model, USD cost, latency, degradation state, request, session, user, and timestamp. Aggregated views power the dashboard and Cortex Analyst.
+Every Cortex COMPLETE invocation records call site, prompt and completion tokens, model, USD cost, latency, degradation state, request, session, user, and timestamp. Aggregated views power the dashboard. The Analyst-shaped endpoint currently degrades cleanly because the dedicated Cortex Analyst REST integration is not implemented.
 
 ## Cost computation
 
