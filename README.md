@@ -2,6 +2,10 @@
 
 NeuLitTrace is a memory-aware literature research assistant for neurologists and neuroscience researchers. It searches a focused corpus, checks relevance, writes a cited summary, remembers what a researcher has already explored, and attaches token cost to the answer.
 
+**[Open the credential-free evaluation](https://lgoyal6.github.io/Trace/).**
+It publishes the checked-in held-out retrieval and grounding results, including
+the reranking result that got worse. It is not presented as a live Cortex app.
+
 ## The problem
 
 Clinical literature work is repetitive and expensive: the same papers resurface, personalization is usually invisible, and multi-step agents rarely show which step consumed the budget. NeuLitTrace makes retrieval, memory effects, and cost attribution inspectable.
