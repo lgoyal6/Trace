@@ -1,0 +1,26 @@
+name: Pages smoke check
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["Deploy public evaluation"]
+    types: [completed]
+permissions: {}
+jobs:
+  smoke:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch the served page from the runner network
+        run: curl -fsS --retry 3 https://lgoyal6.github.io/Trace/ -o index.html
+      - name: Assert the page identity
+        run: grep -q "NeuLitTrace Evaluation" index.html
+      - name: Assert the page states it is not a live Cortex deployment
+        run: grep -q "not a live Cortex Search deployment" index.html
+      - name: Fetch the served retrieval results
+        run: curl -fsS --retry 3 https://lgoyal6.github.io/Trace/retrieval_eval.json -o retrieval_eval.json
+      - name: Assert 28 held-out queries are served
+        run: jq -e '.test.queries_scored == 28' retrieval_eval.json
+      - name: Fetch the served grounding results
+        run: curl -fsS --retry 3 https://lgoyal6.github.io/Trace/grounding_eval.json -o grounding_eval.json
+      - name: Assert 1624 grounding cases are served
+        run: jq -e '.test.cases == 1624' grounding_eval.json
