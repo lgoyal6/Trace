@@ -29,7 +29,7 @@ The response contains `request_id`, `summary_markdown`, citations, scored papers
 |---|---|
 | `GET /economics/summary?window=24h` | Requests, tokens, USD, call sites, hours |
 | `GET /economics/request/{request_id}` | Per-call usage, latency, cost, degradation |
-| `POST /economics/ask` | Cortex Analyst answer, SQL, and rows; clean unavailable response when Analyst degrades |
+| `POST /economics/ask` | Staged Analyst contract; clean unavailable response until the dedicated REST integration exists |
 
 The frozen summary contract does not expose median cost per query. The UI marks that headline unavailable instead of presenting an average as a median.
 

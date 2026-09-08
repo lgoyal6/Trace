@@ -13,7 +13,7 @@ It is a research aid, not a diagnostic tool. The atlas visualizes regions descri
 - Next.js and React for the application.
 - FastAPI behind frozen HTTP contracts.
 - Snowflake Cortex Search for retrieval and Cortex COMPLETE for six model call sites.
-- A Snowflake token ledger and Cortex Analyst for cost inspection.
+- A Snowflake token ledger and aggregate views for cost inspection, plus a staged Analyst API contract that returns unavailable until the dedicated REST integration exists.
 - EverMind EverOS for the researcher profile, thread, seen-paper history, and personalization.
 
 ## What makes the system inspectable
