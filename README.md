@@ -184,6 +184,23 @@ Start the credential-free backend profile:
 NEULIT_PROFILE=fake python -m uvicorn backend.api.main:app --reload --port 8000
 ```
 
+For a credential-free persistent vector backend, use the optional
+`local_vector` profile:
+
+```bash
+NEULIT_PROFILE=local_vector \
+  NEULIT_LOCAL_VECTOR_DB=/tmp/neulit-vectors.sqlite3 \
+  python -m uvicorn backend.api.main:app --port 8000
+```
+
+`LocalVectorRetriever` stores one canonical record per PMID and a deterministic
+hashed embedding in SQLite, then ranks records by cosine similarity. It is
+useful for reproducible local retrieval and adapter tests. It is not a managed
+vector database, does not provide ANN indexing or multi-node durability, and
+does not change the Snowflake `live` profiles. The default database path is
+`~/.codex/work/neulit/local-vector-store.sqlite3`; set `NEULIT_LOCAL_VECTOR_DB`
+to choose another path.
+
 One command is enough to see it work, before you touch the frontend at all.
 Note the snake_case field names in the request: `QueryRequest` is a plain
 pydantic model with no alias generator, so `sessionId` is not an accepted
