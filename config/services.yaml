@@ -21,3 +21,9 @@ live_no_snowflake: # Card 2A's integration profile - no Snowflake credentials ne
   llm:       backend.contracts.fakes.FakeLLM
   memory:    backend.memory.evermind.EverOSMemory
   ledger:    backend.contracts.fakes.FakeLedger
+
+local_vector: # Optional credential-free persistent vector profile.
+  retrieval: backend.vectorstore.retrieval.LocalVectorRetriever
+  llm: backend.contracts.fakes.FakeLLM
+  memory: backend.contracts.fakes.FakeMemory
+  ledger: backend.contracts.fakes.FakeLedger
