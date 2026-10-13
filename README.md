@@ -201,6 +201,22 @@ does not change the Snowflake `live` profiles. The default database path is
 `~/.codex/work/neulit/local-vector-store.sqlite3`; set `NEULIT_LOCAL_VECTOR_DB`
 to choose another path.
 
+Documents can be inserted or updated with `LocalVectorRetriever.upsert_document`
+and removed with `delete_document`. Each record can retain a source document,
+page number, and JSON metadata; `provenance(pmid)` reads those values back for
+audit and citation tests. Run the fixed, credential-free evaluation with:
+
+```bash
+uv run python -m backend.measurement.run_local_vector_eval \
+  --db /tmp/neulit-vectors.sqlite3 \
+  --output /tmp/neulit-local-vector-eval.json
+```
+
+The evaluation reports hit rate on three checked-in public-corpus queries and
+returns the PMIDs used for each result. It is a reproducibility check for this
+adapter, not a benchmark against Snowflake, a managed vector database, or a
+production embedding model.
+
 One command is enough to see it work, before you touch the frontend at all.
 Note the snake_case field names in the request: `QueryRequest` is a plain
 pydantic model with no alias generator, so `sessionId` is not an accepted

@@ -14,7 +14,7 @@ import re
 import sqlite3
 from collections import defaultdict
 from pathlib import Path
-from typing import Sequence
+from typing import Mapping, Sequence
 
 from backend.app.retrieval.rarity import rarity_boost
 from backend.contracts.models import ConditionMatch, Paper, ScoredPaper
@@ -74,8 +74,17 @@ class LocalVectorRetriever:
             db.execute("""CREATE TABLE IF NOT EXISTS papers (
                 pmid TEXT PRIMARY KEY, title TEXT NOT NULL, abstract TEXT NOT NULL,
                 journal TEXT NOT NULL, year INTEGER NOT NULL, condition TEXT NOT NULL,
-                is_rare INTEGER NOT NULL, url TEXT NOT NULL, vector_json TEXT NOT NULL
+                is_rare INTEGER NOT NULL, url TEXT NOT NULL, vector_json TEXT NOT NULL,
+                source_document TEXT, page INTEGER, metadata_json TEXT NOT NULL DEFAULT '{}'
             )""")
+            # Keep databases created by the first local-vector release readable.
+            columns = {row[1] for row in db.execute("PRAGMA table_info(papers)")}
+            if "source_document" not in columns:
+                db.execute("ALTER TABLE papers ADD COLUMN source_document TEXT")
+            if "page" not in columns:
+                db.execute("ALTER TABLE papers ADD COLUMN page INTEGER")
+            if "metadata_json" not in columns:
+                db.execute("ALTER TABLE papers ADD COLUMN metadata_json TEXT NOT NULL DEFAULT '{}' ")
             if db.execute("SELECT COUNT(*) FROM papers").fetchone()[0] == 0:
                 with self.corpus_path.open() as source:
                     rows = json.load(source)
@@ -90,13 +99,76 @@ class LocalVectorRetriever:
                     seen_pmids.add(pmid)
                     unique_rows.append(row)
                 db.executemany(
-                    "INSERT INTO papers VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    "INSERT INTO papers (pmid, title, abstract, journal, year, condition, is_rare, url, vector_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     [(str(row["pmid"]), row["title"], row["abstract"],
                       row.get("journal", ""), int(row.get("year", 0)), row["condition"],
                       int(row.get("rarity") == "rare"),
                       row.get("url", f"https://pubmed.ncbi.nlm.nih.gov/{row['pmid']}/"),
                       json.dumps(_embed(f"{row['title']} {row['abstract']}"))) for row in unique_rows],
                 )
+
+    def upsert_document(
+        self,
+        *,
+        pmid: str,
+        title: str,
+        abstract: str,
+        journal: str = "",
+        year: int = 0,
+        condition: str = "",
+        is_rare: bool = False,
+        url: str = "",
+        source_document: str | None = None,
+        page: int | None = None,
+        metadata: Mapping[str, object] | None = None,
+    ) -> None:
+        """Insert or replace one document, retaining source and page metadata.
+
+        The operation is idempotent by PMID. ``metadata`` is JSON so the local
+        store stays dependency-free and its provenance can be inspected directly.
+        """
+        if page is not None and page < 1:
+            raise ValueError("page must be a positive integer")
+        record_metadata = dict(metadata or {})
+        vector = json.dumps(_embed(f"{title} {abstract}"))
+        with self._connect() as db:
+            db.execute(
+                """INSERT INTO papers
+                (pmid, title, abstract, journal, year, condition, is_rare, url,
+                 vector_json, source_document, page, metadata_json)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(pmid) DO UPDATE SET
+                  title=excluded.title, abstract=excluded.abstract,
+                  journal=excluded.journal, year=excluded.year,
+                  condition=excluded.condition, is_rare=excluded.is_rare,
+                  url=excluded.url, vector_json=excluded.vector_json,
+                  source_document=excluded.source_document, page=excluded.page,
+                  metadata_json=excluded.metadata_json""",
+                (str(pmid), title, abstract, journal, int(year), condition,
+                 int(is_rare), url, vector, source_document, page,
+                 json.dumps(record_metadata, sort_keys=True)),
+            )
+
+    def delete_document(self, pmid: str) -> bool:
+        """Delete a document and return whether a record was removed."""
+        with self._connect() as db:
+            result = db.execute("DELETE FROM papers WHERE pmid = ?", (str(pmid),))
+            return result.rowcount == 1
+
+    def provenance(self, pmid: str) -> dict[str, object] | None:
+        """Return source-document, page, and caller metadata for one record."""
+        with self._connect() as db:
+            row = db.execute(
+                "SELECT source_document, page, metadata_json FROM papers WHERE pmid = ?",
+                (str(pmid),),
+            ).fetchone()
+        if row is None:
+            return None
+        return {
+            "source_document": row["source_document"],
+            "page": row["page"],
+            "metadata": json.loads(row["metadata_json"] or "{}"),
+        }
 
     def search(self, query: str, *, secondary_query: str | None = None,
                top_k: int = 10, apply_rarity: bool = True,
