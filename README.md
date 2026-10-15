@@ -217,6 +217,22 @@ returns the PMIDs used for each result. It is a reproducibility check for this
 adapter, not a benchmark against Snowflake, a managed vector database, or a
 production embedding model.
 
+### Revocation, source versions and researcher access
+
+- Every record carries a content hash (the manifest's `record_sha256` over pmid, title and abstract), and each answer's `retrieval_provenance` stores it. `backend/app/corpus/versioning.py:revalidate_citations` re-reads the cited records through the current read path and marks each `current`, `changed`, `revoked` or `redacted`; only an all-`current` answer may be re-served as is.
+- `LocalVectorRetriever.sync_records` re-indexes changed sources (bumping `source_version`), prunes removed ones and applies tombstones in one transaction. `delete_record(..., vector_store=store)` also removes or blanks the vector row, not only the corpus row.
+- `replace_document_chunks` re-indexes a parsed document all or nothing: a parser exception or empty parse leaves the previous version serving.
+- `NEULIT_ACCESS_POLICY` names a JSON policy (`{"labels": {pmid: label}, "known_labels": [...]}`). `run_query(..., access=AccessScope(...))` then never serves, cites or records a record the scope may not read; unknown labels are denied to everyone. The scope is caller supplied: Trace still authenticates nothing, so this is scoping, not authentication.
+- A summary whose own sentences carry instruction-like text (override phrases, role tags, shell, SQL, host paths, link directives) is replaced with the abstention text, because lexical grounding accepts text copied out of a hostile record.
+- `backend/tests/test_retrieval_conformance.py` runs one RetrievalPort suite against `FakeRetrieval`, `LocalVectorRetriever` and `CortexSearchRetriever` fed replayed rows (no Snowpark session; its SQL-backed lookups are skipped as needing credentials).
+
+A credential-free container image of the backend (fake or local_vector profile only, non-root, no `.env`) builds from the root `Dockerfile`:
+
+```bash
+docker build -t trace-backend .
+docker run --rm -p 8000:8000 --memory 2g --cpus 2 trace-backend
+```
+
 One command is enough to see it work, before you touch the frontend at all.
 Note the snake_case field names in the request: `QueryRequest` is a plain
 pydantic model with no alias generator, so `sessionId` is not an accepted
@@ -287,3 +303,9 @@ Start with the [overview](docs/overview.md), then see [architecture](docs/archit
 ## License
 
 See [LICENSE](LICENSE).
+
+The optional MiniLM comparison requires a cache containing only the pinned checkpoint (`HF_HOME`) and
+`--minilm-code` pointing to the pure-NumPy `minilm.py` from noisy-rag-bench.
+It does not infer a private sibling-checkout location. The output records the
+model, tokenizer and inference-source hashes; historical measurements retain
+their original source bindings. Importing the study does not load a model.
