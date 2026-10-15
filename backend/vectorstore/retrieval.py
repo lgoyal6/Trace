@@ -13,9 +13,11 @@ import os
 import re
 import sqlite3
 from collections import defaultdict
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Mapping, Sequence
 
+from backend.app.corpus.versioning import content_hash
 from backend.app.retrieval.rarity import rarity_boost
 from backend.contracts.models import ConditionMatch, Paper, ScoredPaper
 
@@ -64,10 +66,16 @@ class LocalVectorRetriever:
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._initialize()
 
-    def _connect(self) -> sqlite3.Connection:
+    @contextmanager
+    def _connect(self):
         connection = sqlite3.connect(self.db_path)
         connection.row_factory = sqlite3.Row
-        return connection
+        try:
+            # SQLite's context manager commits or rolls back but does not close.
+            with connection:
+                yield connection
+        finally:
+            connection.close()
 
     def _initialize(self) -> None:
         with self._connect() as db:
@@ -85,6 +93,10 @@ class LocalVectorRetriever:
                 db.execute("ALTER TABLE papers ADD COLUMN page INTEGER")
             if "metadata_json" not in columns:
                 db.execute("ALTER TABLE papers ADD COLUMN metadata_json TEXT NOT NULL DEFAULT '{}' ")
+            if "content_hash" not in columns:
+                db.execute("ALTER TABLE papers ADD COLUMN content_hash TEXT")
+            if "source_version" not in columns:
+                db.execute("ALTER TABLE papers ADD COLUMN source_version INTEGER NOT NULL DEFAULT 1")
             if db.execute("SELECT COUNT(*) FROM papers").fetchone()[0] == 0:
                 with self.corpus_path.open() as source:
                     rows = json.load(source)
@@ -99,13 +111,21 @@ class LocalVectorRetriever:
                     seen_pmids.add(pmid)
                     unique_rows.append(row)
                 db.executemany(
-                    "INSERT INTO papers (pmid, title, abstract, journal, year, condition, is_rare, url, vector_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    "INSERT INTO papers (pmid, title, abstract, journal, year, condition, is_rare, url, vector_json, content_hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     [(str(row["pmid"]), row["title"], row["abstract"],
                       row.get("journal", ""), int(row.get("year", 0)), row["condition"],
                       int(row.get("rarity") == "rare"),
                       row.get("url", f"https://pubmed.ncbi.nlm.nih.gov/{row['pmid']}/"),
-                      json.dumps(_embed(f"{row['title']} {row['abstract']}"))) for row in unique_rows],
+                      json.dumps(_embed(f"{row['title']} {row['abstract']}")),
+                      content_hash(pmid=str(row["pmid"]), title=row["title"], abstract=row["abstract"]))
+                     for row in unique_rows],
                 )
+            # Rows written before content hashes existed get one now, so a
+            # later sync can tell changed sources from unchanged ones.
+            for row in db.execute("SELECT pmid, title, abstract FROM papers WHERE content_hash IS NULL").fetchall():
+                db.execute("UPDATE papers SET content_hash = ? WHERE pmid = ?", (
+                    content_hash(pmid=row["pmid"], title=row["title"], abstract=row["abstract"]),
+                    row["pmid"]))
 
     def upsert_document(
         self,
@@ -129,25 +149,139 @@ class LocalVectorRetriever:
         """
         if page is not None and page < 1:
             raise ValueError("page must be a positive integer")
-        record_metadata = dict(metadata or {})
-        vector = json.dumps(_embed(f"{title} {abstract}"))
         with self._connect() as db:
-            db.execute(
-                """INSERT INTO papers
-                (pmid, title, abstract, journal, year, condition, is_rare, url,
-                 vector_json, source_document, page, metadata_json)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ON CONFLICT(pmid) DO UPDATE SET
-                  title=excluded.title, abstract=excluded.abstract,
-                  journal=excluded.journal, year=excluded.year,
-                  condition=excluded.condition, is_rare=excluded.is_rare,
-                  url=excluded.url, vector_json=excluded.vector_json,
-                  source_document=excluded.source_document, page=excluded.page,
-                  metadata_json=excluded.metadata_json""",
-                (str(pmid), title, abstract, journal, int(year), condition,
-                 int(is_rare), url, vector, source_document, page,
-                 json.dumps(record_metadata, sort_keys=True)),
-            )
+            self._upsert(db, pmid=pmid, title=title, abstract=abstract, journal=journal,
+                         year=year, condition=condition, is_rare=is_rare, url=url,
+                         source_document=source_document, page=page, metadata=metadata)
+
+    @staticmethod
+    def _upsert(db: sqlite3.Connection, *, pmid: str, title: str, abstract: str,
+                journal: str = "", year: int = 0, condition: str = "",
+                is_rare: bool = False, url: str = "", source_document: str | None = None,
+                page: int | None = None, metadata: Mapping[str, object] | None = None) -> str:
+        """Write one record inside the caller's transaction.
+
+        Returns "inserted", "updated" or "unchanged". ``source_version`` goes up
+        by one only when the content hash changes, so re-running an identical
+        sync is a no-op and a version number always names one text.
+        """
+        new_hash = content_hash(pmid=str(pmid), title=title, abstract=abstract)
+        record_metadata = json.dumps(dict(metadata or {}), sort_keys=True)
+        existing = db.execute(
+            "SELECT content_hash, source_version, source_document, page, metadata_json, journal, year, url, "
+            "condition, is_rare "
+            "FROM papers WHERE pmid = ?", (str(pmid),),
+        ).fetchone()
+        if existing is not None and existing["content_hash"] == new_hash and (
+            existing["source_document"], existing["page"], existing["metadata_json"],
+            existing["journal"], int(existing["year"]), existing["url"],
+            existing["condition"], bool(existing["is_rare"]),
+        ) == (source_document, page, record_metadata, journal, int(year), url, condition, bool(is_rare)):
+            return "unchanged"
+        version = 1
+        if existing is not None:
+            version = int(existing["source_version"] or 1)
+            if existing["content_hash"] != new_hash:
+                version += 1
+        db.execute(
+            """INSERT INTO papers
+            (pmid, title, abstract, journal, year, condition, is_rare, url,
+             vector_json, source_document, page, metadata_json, content_hash, source_version)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(pmid) DO UPDATE SET
+              title=excluded.title, abstract=excluded.abstract,
+              journal=excluded.journal, year=excluded.year,
+              condition=excluded.condition, is_rare=excluded.is_rare,
+              url=excluded.url, vector_json=excluded.vector_json,
+              source_document=excluded.source_document, page=excluded.page,
+              metadata_json=excluded.metadata_json, content_hash=excluded.content_hash,
+              source_version=excluded.source_version""",
+            (str(pmid), title, abstract, journal, int(year), condition,
+             int(is_rare), url, json.dumps(_embed(f"{title} {abstract}")), source_document, page,
+             record_metadata, new_hash, version),
+        )
+        return "inserted" if existing is None else "updated"
+
+    def sync_records(self, records: Sequence[Mapping[str, object]], *,
+                     tombstones=None, prune: bool = True) -> dict[str, object]:
+        """Make the store match ``records`` (corpus.json rows) in one transaction.
+
+        Changed text is re-embedded and its version bumped, unchanged rows are
+        left alone, rows absent from ``records`` are removed when ``prune`` is
+        true, and a ``TombstoneLog`` wins over the records: a deleted pmid is
+        removed even if the source still lists it, a redacted one is stored
+        with the placeholder text. All-or-nothing: an exception rolls back, so
+        a failed sync leaves the previous index intact rather than half new.
+        """
+        from backend.app.corpus.retention import apply_to_records
+
+        rows = [dict(r) for r in records]
+        deleted = set(tombstones.deleted_pmids()) if tombstones is not None else set()
+        if tombstones is not None:
+            rows = apply_to_records(rows, tombstones)
+        counts = {"inserted": 0, "updated": 0, "unchanged": 0, "deleted": 0}
+        wanted: set[str] = set()
+        with self._connect() as db:
+            for row in rows:
+                pmid = str(row["pmid"])
+                if pmid in wanted:
+                    continue  # one canonical record per document, first wins
+                wanted.add(pmid)
+                outcome = self._upsert(
+                    db, pmid=pmid, title=str(row["title"]), abstract=str(row["abstract"]),
+                    journal=str(row.get("journal", "")), year=int(row.get("year", 0) or 0),
+                    condition=str(row.get("condition", "")), is_rare=row.get("rarity") == "rare",
+                    url=str(row.get("url", f"https://pubmed.ncbi.nlm.nih.gov/{pmid}/")),
+                )
+                counts[outcome] += 1
+            # Prune only corpus rows; page chunks indexed through
+            # replace_document_chunks belong to their own source document.
+            corpus_rows = {r[0] for r in db.execute("SELECT pmid FROM papers WHERE source_document IS NULL")}
+            stored = {r[0] for r in db.execute("SELECT pmid FROM papers")}
+            to_remove = (corpus_rows - wanted) if prune else set()
+            to_remove |= stored & deleted
+            for pmid in sorted(to_remove):
+                db.execute("DELETE FROM papers WHERE pmid = ?", (pmid,))
+            counts["deleted"] = len(to_remove)
+        return {"store": str(self.db_path), **counts, "records": len(wanted)}
+
+    def replace_document_chunks(self, doc_id: str, parse, *, condition: str = "",
+                                is_rare: bool = False) -> dict[str, object]:
+        """Re-index every page chunk of one source document, all or nothing.
+
+        ``parse`` is a zero-argument callable returning layout_parse.DocChunk
+        objects. If it raises or yields no usable chunk, nothing is written and
+        the previously indexed version of the document keeps serving; the
+        receipt says why. On success the old chunks of ``doc_id`` are replaced
+        in the same transaction as the new ones are written.
+        """
+        try:
+            chunks = [c for c in parse() if str(getattr(c, "text", "")).strip()]
+        except Exception as exc:  # parser failure is data, not a crash
+            return {"doc_id": doc_id, "status": "parser_failed", "error": type(exc).__name__,
+                    "written": 0}
+        if not chunks:
+            return {"doc_id": doc_id, "status": "no_chunks", "written": 0}
+        with self._connect() as db:
+            db.execute("DELETE FROM papers WHERE source_document = ?", (doc_id,))
+            for chunk in chunks:
+                chunk_id = f"{doc_id}#p{chunk.page}b{chunk.block_index}"
+                self._upsert(
+                    db, pmid=chunk_id, title=f"{doc_id} p.{chunk.page}", abstract=chunk.text,
+                    condition=condition, is_rare=is_rare, source_document=doc_id,
+                    page=chunk.page if chunk.page > 0 else None,
+                    metadata={"parser": chunk.parser, "kind": chunk.kind, "block": chunk.block_index},
+                )
+        return {"doc_id": doc_id, "status": "indexed", "written": len(chunks)}
+
+    def version(self, pmid: str) -> dict[str, object] | None:
+        """content_hash and source_version for one stored record."""
+        with self._connect() as db:
+            row = db.execute("SELECT content_hash, source_version FROM papers WHERE pmid = ?",
+                             (str(pmid),)).fetchone()
+        if row is None:
+            return None
+        return {"content_hash": row["content_hash"], "source_version": int(row["source_version"])}
 
     def delete_document(self, pmid: str) -> bool:
         """Delete a document and return whether a record was removed."""

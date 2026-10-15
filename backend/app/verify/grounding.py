@@ -1,58 +1,7 @@
-"""Deterministic claim-level grounding: does every assertion in the summary
-trace to a retrieved record, and does that record actually say it?
+"""Check citation coverage, content-word overlap and numeric containment.
 
---- WHY THIS EXISTS ALONGSIDE citation_check.py -----------------------------
-
-`citation_check.py` asks an LLM whether each cited abstract supports its
-claim. Two things it structurally cannot do:
-
-1. It only ever sees the claims that already carry a `[N]` marker.
-   `summary.generate._extract_citations` builds that list by enumerating the
-   markers it FINDS, so a sentence with no marker produces no citation, is
-   never sent to the judge, and is counted by nothing. A summary that is half
-   unsourced assertion therefore reports a perfect support rate. That is the
-   defect this module was written against; `test_grounding.py` reproduces it.
-
-2. Under the `fake` profile the judge and the summariser are the same stand-in,
-   so its verdict is the summariser marking its own homework. Under the `live`
-   profile it is a paid call that can time out, and `check_citations` returns
-   `supported=None` on any failure. Neither gives a check you can rely on.
-
-So this module is lexical, local, free, and always runs. It does not replace
-the judge; the judge is the semantic opinion and this is the arithmetic that
-holds when the judge is unavailable or self-interested.
-
---- WHAT "GROUNDED" MEANS HERE ---------------------------------------------
-
-A claim is grounded in a cited record when enough of its CONTENT words occur
-in that record's abstract, and every number it states occurs there too.
-
-The stopword filter is the difference between a check and a rubber stamp.
-`contracts.fakes._tokenize` is a bare word set, so "Rituximab is the standard
-first-line treatment and cures most patients" overlaps an abstract about
-shoulder surgery on `is`, `the`, `and`, `most` and `patients` alone. Content
-words only, and the overlap has to clear a threshold that was MEASURED on a
-labelled set rather than picked (see `backend/measurement/run_grounding_eval.py`
-and the `dev`/`test` numbers it writes).
-
-The numeric rule is separate and absolute because containment is blind to the
-substitution that matters most in a clinical claim: swapping "eight patients"
-for "eighteen patients" changes one token out of a dozen, which no threshold
-on a fraction will ever catch, and it changes the meaning of the sentence
-completely. So any number in the claim that is absent from the abstract fails
-it outright, regardless of how well the words line up.
-
---- THE FOUR VERDICTS ------------------------------------------------------
-
-    grounded     cites at least one record whose abstract carries the claim
-    unsupported  cites a record, and that record does not carry the claim
-    uncited      states something and cites nothing
-    dangling     cites an [N] that is not in the retrieved set at all
-
-`uncited` and `dangling` are the two that nothing in the repo could see
-before. They are separate because they are different failures: `uncited` is a
-model asserting from its own weights, `dangling` is a model inventing a source
-slot that was never offered to it.
+This local lexical check runs alongside the optional semantic citation judge.
+See docs/corpus-controls.md for verdicts and limitations.
 """
 from __future__ import annotations
 
@@ -60,6 +9,7 @@ import re
 from dataclasses import dataclass
 from typing import Literal, Sequence
 
+from backend.app.corpus.versioning import paper_hash
 from backend.contracts.models import ScoredPaper
 
 Verdict = Literal["grounded", "unsupported", "uncited", "dangling"]
@@ -157,6 +107,9 @@ class RecordProvenance:
     source: str
     retrieval_rank: int
     score: float
+    #: sha256 of the record text the answer was built from (versioning.py),
+    #: so a stored answer can later be re-validated against the current store.
+    content_hash: str = ""
 
 
 @dataclass(frozen=True)
@@ -362,7 +315,8 @@ def provenance_for(papers: Sequence[ScoredPaper], source: str) -> list[RecordPro
     """Rank-annotated provenance for the record set an answer was built from."""
     return [
         RecordProvenance(
-            pmid=sp.paper.pmid, source=source, retrieval_rank=i + 1, score=sp.score
+            pmid=sp.paper.pmid, source=source, retrieval_rank=i + 1, score=sp.score,
+            content_hash=paper_hash(sp.paper),
         )
         for i, sp in enumerate(papers)
     ]

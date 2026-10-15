@@ -10,6 +10,7 @@ from concurrent.futures import ThreadPoolExecutor, wait
 from dataclasses import dataclass, field, replace
 from uuid import uuid4
 
+from backend.app.corpus.access import AccessPolicy, AccessScope, access_enforced, policy_from_env
 from backend.app.corpus.conditions import CONDITIONS
 from backend.app.corpus.retention import enforced as retention_enforced
 from backend.app.llm.compress import compress_abstract
@@ -20,6 +21,7 @@ from backend.app.loop.trace import LoopTraceEntry
 from backend.app.retrieval.policy import RetrievalPolicy
 from backend.app.summary.generate import SourcedCitation, generate_sourced_summary
 from backend.app.verify.citation_check import check_citations
+from backend.app.verify.injection import screen_summary
 from backend.app.verify.grounding import (
     ABSTENTION_MARKDOWN,
     GroundingReport,
@@ -229,6 +231,8 @@ def run_query(
     *,
     on_stage: Callable[[str, dict], None] | None = None,
     policy: RetrievalPolicy | None = None,
+    access: AccessScope | None = None,
+    access_policy: AccessPolicy | None = None,
 ) -> QueryResult:
     """`policy=None` is today's exact behaviour: retrieve `RETRIEVAL_TOP_K`,
     summarise the top `SUMMARY_TOP_N` uncompressed abstracts. Passing a
@@ -251,6 +255,13 @@ def run_query(
     # legitimately still hold a record that PAPERS no longer does. Returns the
     # port unchanged when no tombstone exists.
     retrieval = retention_enforced(services.retrieval)
+    # Researcher access is enforced on the same read path, outside retention,
+    # so a record the caller may not read never reaches the prompt, a citation
+    # or the provenance. No policy configured (the default) is a no-op. The
+    # scope is supplied by the caller; this function does not authenticate it.
+    retrieval = access_enforced(
+        retrieval, access_policy if access_policy is not None else policy_from_env(), access
+    )
 
     if personalize:
         profile, seen, memory_read_ok = _load_memory_with_budget(services.memory, user_id)
@@ -359,6 +370,16 @@ def run_query(
     # just failed to ground itself to explain that it failed would be one more
     # ungrounded sentence.
     abstained = not grounding.answerable
+    # Lexical grounding cannot see a poisoned record: an instruction copied out
+    # of a hostile abstract is "contained in" its cited abstract. Fail closed
+    # if the summary itself carries instruction-like text.
+    injected = screen_summary(summary.markdown) if not abstained else []
+    if injected:
+        logger.warning(
+            "abstaining: request %s summary carried %d instruction-like claim(s): %s",
+            request_id, len(injected), sorted({m for _, ms in injected for m in ms}),
+        )
+        abstained = True
     if abstained:
         logger.info(
             "abstaining: %d records, %d claims, %d grounded",
