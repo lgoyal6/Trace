@@ -1,68 +1,7 @@
-"""Deletion and redaction of stored documents, and an honest account of what
-"deleted" does and does not mean.
+"""Apply deletion/redaction tombstones to stores, caches and retrieval reads.
 
-Measured before this module existed: there was no per-document deletion or
-redaction path anywhere in `backend/` (grep for tombstone|redact|def delete_|
-purge returned nothing), and removing a record from `backend/data/corpus.json`
-did not remove it from a running process - `FakeRetrieval` reads the corpus
-through a `functools.lru_cache(maxsize=1)`, so `get_by_pmids` still returned
-the record after it was gone from disk.
-
---- THE FOUR PLACES A RECORD LIVES -----------------------------------------
-
-1. SOURCE OF RECORD   `backend/data/corpus.json`, and `NEULIT.CORE.PAPERS`.
-2. INDEX              the Cortex Search Service `NEULIT.CORE.PAPERS_SEARCH`,
-                      which is derived from PAPERS with `TARGET_LAG = '1 hour'`.
-3. CACHE              `backend.contracts.fakes._load_corpus`'s lru_cache (an
-                      in-process copy of the whole corpus), and the tombstone
-                      log's own mtime cache in this module.
-4. EXPORT             `corpus.json` again (it is both the store and the
-                      shipped fixture), and every API response that carries
-                      paper text: `POST /query`, `POST /query/stream`,
-                      `GET /demo-contrast`. The four JSON files under
-                      `backend/measurement/results/` were checked and contain
-                      no pmids or paper text, so they are not an export
-                      surface for this.
-
-`delete_record` writes a tombstone, then walks all four.
-
---- THE PART THAT CANNOT BE INSTANT, AND IS NOT CLAIMED TO BE --------------
-
-The index is a materialisation with a stated one-hour lag. Purging PAPERS
-does not purge PAPERS_SEARCH; the service catches up on its own schedule, or
-sooner if an operator re-runs `snowflake/sql/03_search_service.sql`. So
-between the tombstone and the refresh there is a real window in which the
-index still holds the record.
-
-`RetentionFilteredRetrieval` is what closes that window at read time: it wraps
-any `RetrievalPort` and drops tombstoned pmids out of `search()`,
-`get_by_pmids()` and the condition counts, so a record that is still in the
-index is still never served. That is a read-path guarantee on top of an
-eventually-consistent purge, and it is stated that way rather than as
-"deletion is instant".
-
---- BACKUP RETENTION: STATED SEPARATELY, BECAUSE IT IS DIFFERENT -----------
-
-Purging a live store does not reach a backup, and no code in this repo can
-make it. Snowflake keeps deleted rows recoverable through Time Travel
-(`DATA_RETENTION_TIME_IN_DAYS`, this account's setting is not readable from
-here) and then through Fail-safe, which is a fixed 7 days on permanent tables
-and is NOT operator-controllable - a Snowflake account cannot shorten it, and
-cannot query or purge it. Git history holds every past version of
-`corpus.json` and a deletion commit does not remove the earlier blobs.
-
-So the truthful statement, and the one `DeletionReceipt.summary()` prints, is:
-
-    the record stops being served immediately, is purged from the live stores
-    on this run, leaves the derived index within its refresh lag, and remains
-    recoverable from backups until each backup's own retention expires.
-
-`BACKUP_STORES` below is the declared inventory. It is a *declaration*, not a
-measurement: the Snowflake retention values are this repo's stated intent and
-must be reconciled against the account's real `DATA_RETENTION_TIME_IN_DAYS`
-before anyone quotes them to a data subject. That reconciliation needs
-credentials this environment does not have, and it is listed as BLOCKED
-rather than guessed.
+Read filtering covers derived-index lag; backups retain their own lifetimes.
+See docs/retention.md for the storage inventory and enforcement contract.
 """
 from __future__ import annotations
 
@@ -205,10 +144,11 @@ class TombstoneLog:
         return None
 
     def deleted_pmids(self) -> set[str]:
-        return {e.pmid for e in self._entries if self.mode_for(e.pmid) == DELETE}
+        return {e.pmid for e in self._entries if e.mode == DELETE}
 
     def redacted_pmids(self) -> set[str]:
-        return {e.pmid for e in self._entries if self.mode_for(e.pmid) == REDACT}
+        # Delete wins across all entries, without rescanning the log per PMID.
+        return {e.pmid for e in self._entries if e.mode == REDACT} - self.deleted_pmids()
 
     def __len__(self) -> int:
         return len(self._entries)
@@ -471,6 +411,9 @@ class RetentionFilteredRetrieval:
         return out
 
     def closest_conditions(self, query: str, top_n: int = 3):
+        # Aggregate rows have no per-source provenance for removing deleted records.
+        if self._active().deleted_pmids():
+            return []
         return self._inner.closest_conditions(query, top_n=top_n)
 
     def health(self) -> dict:
@@ -493,7 +436,8 @@ def enforced(port, log: TombstoneLog | None = None):
     active = log if log is not None else active_log()
     if not active:
         return port
-    return RetentionFilteredRetrieval(port, active)
+    # An explicit fixture log stays pinned. The default log refreshes on each read.
+    return RetentionFilteredRetrieval(port, log)
 
 
 # --- the receipt ------------------------------------------------------------
@@ -539,6 +483,34 @@ class DeletionReceipt:
         }
 
 
+def _purge_vector_store(store, entry: Tombstone, *, dry_run: bool) -> StoreOutcome:
+    """Remove (or blank) the record in a persistent local vector store.
+
+    The vector store is a derived copy of corpus.json with its own embedding
+    of the record text, so purging corpus.json alone leaves the text and its
+    vector at rest there. The read path would still filter it; this removes it.
+    """
+    label = f"local vector store {getattr(store, 'db_path', '')}".strip()
+    if dry_run:
+        return StoreOutcome(label, "pending", "dry run: vector row not touched")
+    if entry.mode == DELETE:
+        removed = store.delete_document(entry.pmid)
+        return StoreOutcome(label, "purged",
+                            "vector row removed" if removed else "no vector row for this pmid")
+    papers = store.get_by_pmids([entry.pmid])
+    if not papers:
+        return StoreOutcome(label, "purged", "no vector row for this pmid")
+    paper = papers[0]
+    prov = store.provenance(entry.pmid) or {}
+    store.upsert_document(
+        pmid=paper.pmid, title=REDACTION_PLACEHOLDER, abstract=REDACTION_PLACEHOLDER,
+        journal=paper.journal, year=paper.year, condition=paper.condition,
+        is_rare=paper.is_rare, url=paper.url, source_document=prov.get("source_document"),
+        page=prov.get("page"), metadata=prov.get("metadata"),
+    )
+    return StoreOutcome(label, "purged", "vector row text and embedding replaced by placeholder")
+
+
 def delete_record(
     pmid: str,
     reason: str,
@@ -548,6 +520,7 @@ def delete_record(
     tombstone_path: Path | str | None = None,
     manifest_path: Path | str | None = None,
     dry_run: bool = False,
+    vector_store=None,
 ) -> DeletionReceipt:
     """Tombstone one record and walk every live store it reaches.
 
@@ -603,6 +576,9 @@ def delete_record(
             else "no provenance row for this pmid (corpus predates the manifest)",
         )
     )
+
+    if vector_store is not None:
+        receipt.outcomes.append(_purge_vector_store(vector_store, entry, dry_run=dry_run))
 
     cleared = invalidate_caches()
     receipt.outcomes.append(
