@@ -309,3 +309,7 @@ The optional MiniLM comparison requires a cache containing only the pinned check
 It does not infer a private sibling-checkout location. The output records the
 model, tokenizer and inference-source hashes; historical measurements retain
 their original source bindings. Importing the study does not load a model.
+
+Install the optional cached-MiniLM replay dependencies with
+`python -m pip install -r requirements-minilm.txt`. The default container uses
+`requirements.txt` and does not load this optional encoder.
