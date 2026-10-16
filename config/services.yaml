@@ -1,5 +1,5 @@
 fake:      # default. Runs with zero credentials. Cards 2A/2B live here until integration.
-  retrieval: backend.contracts.fakes.FakeRetrieval
+  retrieval: backend.app.retrieval.canonical_fake.CanonicalFakeRetrieval
   llm:       backend.contracts.fakes.FakeLLM
   memory:    backend.contracts.fakes.FakeMemory
   ledger:    backend.contracts.fakes.FakeLedger
@@ -17,7 +17,7 @@ live_no_memory:   # Card 1's integration profile - no EverOS credentials needed
   ledger:    backend.snowflake.ledger.SnowflakeLedger
 
 live_no_snowflake: # Card 2A's integration profile - no Snowflake credentials needed
-  retrieval: backend.contracts.fakes.FakeRetrieval
+  retrieval: backend.app.retrieval.canonical_fake.CanonicalFakeRetrieval
   llm:       backend.contracts.fakes.FakeLLM
   memory:    backend.memory.evermind.EverOSMemory
   ledger:    backend.contracts.fakes.FakeLedger

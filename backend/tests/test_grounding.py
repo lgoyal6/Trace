@@ -267,7 +267,7 @@ def test_the_pipeline_carries_source_and_rank_onto_every_citation():
     assert result.retrieval_provenance
     ranks = {r.pmid: r.retrieval_rank for r in result.retrieval_provenance}
     for citation in result.citations:
-        assert citation.source == "backend.contracts.fakes.FakeRetrieval"
+        assert citation.source == "backend.app.retrieval.canonical_fake.CanonicalFakeRetrieval"
         assert citation.retrieval_rank == ranks[citation.pmid]
         assert citation.retrieval_rank >= 1
 
@@ -458,7 +458,7 @@ def test_the_query_response_exposes_grounding_and_provenance():
     assert body["grounding"]["threshold"] == SUPPORT_THRESHOLD
     assert body["retrieval_provenance"], "the record set the answer was built from"
     for record in body["retrieval_provenance"]:
-        assert record["source"] == "backend.contracts.fakes.FakeRetrieval"
+        assert record["source"] == "backend.app.retrieval.canonical_fake.CanonicalFakeRetrieval"
         assert record["retrieval_rank"] >= 1
     for citation in body["citations"]:
         assert citation["source"]
