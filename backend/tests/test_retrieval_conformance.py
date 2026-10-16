@@ -7,6 +7,7 @@ researcher-access filtering, content-hash provenance), and runs the same
 assertions against each adapter:
 
     fake           FakeRetrieval, in-process token overlap      offline
+    canonical_fake Document-level fake used by active profiles offline
     local_vector   LocalVectorRetriever, SQLite + hashed vectors offline
     cortex_replay  CortexSearchRetriever with `_raw_search` replaying corpus
                    rows in the Cortex Search response shape. This exercises
@@ -27,6 +28,7 @@ import pytest
 from backend.app.corpus.access import AccessFilteredRetrieval, AccessPolicy, AccessScope
 from backend.app.corpus.provenance import record_hash
 from backend.app.corpus.retention import TombstoneLog, enforced
+from backend.app.retrieval.canonical_fake import CanonicalFakeRetrieval
 from backend.app.verify.grounding import provenance_for
 from backend.contracts.fakes import FakeRetrieval, _tokenize
 from backend.contracts.models import Paper, ScoredPaper
@@ -65,11 +67,13 @@ def _cortex_replay(monkeypatch):
     return CortexSearchRetriever()
 
 
-@pytest.fixture(params=["fake", "local_vector", "cortex_replay"])
+@pytest.fixture(params=["fake", "canonical_fake", "local_vector", "cortex_replay"])
 def adapter(request, tmp_path, monkeypatch):
     name = request.param
     if name == "fake":
         port = FakeRetrieval()
+    elif name == "canonical_fake":
+        port = CanonicalFakeRetrieval()
     elif name == "local_vector":
         port = LocalVectorRetriever(db_path=tmp_path / "vectors.sqlite3")
     else:
@@ -94,13 +98,44 @@ def test_search_shape_bound_and_order(adapter):
 def test_one_result_slot_per_document(adapter, request):
     name, port = adapter
     if name == "fake":
-        # Found by this suite: FakeRetrieval scores corpus RECORDS, and 17 PMIDs
-        # appear twice in corpus.json under different conditions, so one paper
-        # can fill two top_k slots. fakes.py is frozen at contracts-v1, so the
-        # divergence is recorded as a strict xfail rather than patched.
-        request.applymarker(pytest.mark.xfail(strict=True, reason="FakeRetrieval is record-level, not document-level"))
+        request.applymarker(pytest.mark.xfail(strict=True, reason="Frozen FakeRetrieval is record-level; profiles use CanonicalFakeRetrieval"))
     results = port.search(QUERY, top_k=10)
     assert len(set(_ids(results))) == len(results)
+
+
+def test_canonical_fake_lookup_and_search_use_the_first_record_for_each_pmid():
+    records = {}
+    duplicated = set()
+    for row in CORPUS:
+        pmid = str(row["pmid"])
+        if pmid in records:
+            duplicated.add(pmid)
+        records.setdefault(pmid, row)
+    assert duplicated, "fixture must exercise repeated document records"
+    port = CanonicalFakeRetrieval()
+    found = port.get_by_pmids(sorted(duplicated))
+    assert len(found) == len(duplicated)
+    for paper in found:
+        assert paper.title == records[paper.pmid]["title"]
+        assert paper.abstract == records[paper.pmid]["abstract"]
+        assert paper.condition == records[paper.pmid]["condition"]
+    results = port.search(QUERY, top_k=len(CORPUS))
+    assert len(results) == len(records)
+    assert {sp.paper.pmid for sp in results} == set(records)
+
+
+def test_configured_fake_profile_returns_distinct_documents(monkeypatch):
+    from backend.contracts.registry import get_services
+
+    monkeypatch.setenv("NEULIT_PROFILE", "fake")
+    get_services.cache_clear()
+    try:
+        port = get_services().retrieval
+        assert isinstance(port, CanonicalFakeRetrieval)
+        results = port.search(QUERY, top_k=10)
+        assert len(results) == len(set(_ids(results))) == 10
+    finally:
+        get_services.cache_clear()
 
 
 def test_search_is_deterministic(adapter):
