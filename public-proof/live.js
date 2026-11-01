@@ -27,6 +27,9 @@ $("query-form").addEventListener("submit", async (event) => {
   $("results").setAttribute("aria-busy", "true");
   try {
     const response = await fetch("/api/search", { method: "POST", headers: { "Content-Type": "application/json" }, signal: pending.signal, body: JSON.stringify({ query: $("query").value, top_k: Number($("top-k").value), rarity: $("rarity").value === "true", claim: $("claim").value }) });
+    if (!(response.headers.get("Content-Type") || "").includes("application/json")) {
+      throw new Error("The retrieval service is unavailable. No query result was produced. You can still open the recorded study.");
+    }
     const result = await response.json();
     if (current !== revision) return;
     if (!response.ok) throw new Error(result.error || "No result is available.");
