@@ -16,6 +16,21 @@ python scripts/export_public_demo.py /tmp/trace-demo-unique-run
 ```
 
 Deploy that directory to the existing `tracelab-evaluation` Vercel project.
+Deploy the exported directory, not the repository root. The old Git project
+settings publish only `public-proof`, which serves the interface but omits the
+Python function and returns 404 for `/api/search`. Root Git deployments are
+disabled in `vercel.json` so an unrelated source push cannot replace the working
+bundle with that static-only deployment. GitHub Pages remains a recorded-study
+surface; it cannot run the Python endpoint.
+
+After deployment, run the API check before promoting an alias:
+
+```sh
+python3 scripts/check_public_demo.py https://the-deployment-host
+```
+
+The check requires successful retrieval and rejection of a numerically altered
+claim. A successful root-page response alone is not sufficient.
 `source-manifest.json` binds packaged modules and frontend files to their bytes.
 The public scorer uses deterministic feature hashing, not a pretrained encoder.
 The lexical evidence gate and lexical grounding checks are not calibrated
